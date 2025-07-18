@@ -1,29 +1,35 @@
 {
   "expo": {
-    "name": "grill-partner-maier-app",
-    "slug": "grill-partner-maier-app",
+    "name": "Grill-Partner Maier",
+    "slug": "grill-partner-maier",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#000000"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.grillpartnermaier.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.grillpartnermaier.app"
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "plugins": [["expo-notifications"]],
+    "extra": {
+      "eas": {
+        "projectId": "your-eas-project-id" // Get this after setting up EAS
+      }
     }
   }
 }
