@@ -28,7 +28,7 @@
     "plugins": [["expo-notifications"]],
     "extra": {
       "eas": {
-        "projectId": "your-eas-project-id" // Get this after setting up EAS
+        "projectId": "your-eas-project-id"
       }
     }
   }
