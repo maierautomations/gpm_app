@@ -26,6 +26,7 @@ export default function EventsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showPast, setShowPast] = useState(false);
   const [favoriteEvents, setFavoriteEvents] = useState<string[]>([]);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   
   const user = useUserStore(state => state.user);
 
@@ -234,29 +235,58 @@ export default function EventsScreen() {
     );
   }
 
-  const displayEvents = showPast ? pastEvents : events;
+  // Filter events based on favorites
+  let displayEvents = showPast ? pastEvents : events;
+  if (showFavoritesOnly && user) {
+    displayEvents = displayEvents.filter(event => favoriteEvents.includes(event.id));
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Tab Switcher */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
-          style={[styles.tab, !showPast && styles.activeTab]}
-          onPress={() => setShowPast(false)}
+          style={[styles.tab, !showPast && !showFavoritesOnly && styles.activeTab]}
+          onPress={() => {
+            setShowPast(false);
+            setShowFavoritesOnly(false);
+          }}
         >
-          <Text style={[styles.tabText, !showPast && styles.activeTabText]}>
+          <Text style={[styles.tabText, !showPast && !showFavoritesOnly && styles.activeTabText]}>
             Kommende Events ({events.length})
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity
-          style={[styles.tab, showPast && styles.activeTab]}
-          onPress={() => setShowPast(true)}
+          style={[styles.tab, showPast && !showFavoritesOnly && styles.activeTab]}
+          onPress={() => {
+            setShowPast(true);
+            setShowFavoritesOnly(false);
+          }}
         >
-          <Text style={[styles.tabText, showPast && styles.activeTabText]}>
+          <Text style={[styles.tabText, showPast && !showFavoritesOnly && styles.activeTabText]}>
             Vergangene Events ({pastEvents.length})
           </Text>
         </TouchableOpacity>
+
+        {user && favoriteEvents.length > 0 && (
+          <TouchableOpacity
+            style={[styles.tab, styles.favoriteTab, showFavoritesOnly && styles.activeTab]}
+            onPress={() => {
+              setShowFavoritesOnly(!showFavoritesOnly);
+              setShowPast(false);
+            }}
+          >
+            <Ionicons 
+              name={showFavoritesOnly ? "heart" : "heart-outline"} 
+              size={16} 
+              color={showFavoritesOnly ? "white" : "#FF0000"} 
+            />
+            <Text style={[styles.tabText, showFavoritesOnly && styles.activeTabText]}>
+              Favoriten ({favoriteEvents.length})
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {displayEvents.length === 0 ? (
@@ -340,6 +370,11 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: '#FF0000',
+  },
+  favoriteTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   listContent: {
     paddingVertical: 16,

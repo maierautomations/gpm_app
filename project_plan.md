@@ -1,15 +1,18 @@
 # Grill-Partner Maier App - Development Plan
 
 ## 📋 Project Overview
+
 Mobile app for Grill-Partner Maier restaurant in Kiel, Germany. A React Native Expo application featuring digital menu, AI chatbot, event calendar, and loyalty program.
 
 ## 🎯 Business Goals
+
 - Increase customer retention by 20% through loyalty program
 - Boost event attendance with real-time calendar
 - Improve customer satisfaction with bilingual AI support
 - Modernize customer engagement for a traditional restaurant (seit 1968)
 
 ## 📱 Target Audience
+
 1. **Regular Locals (45-60)**: Daily menu browsers, loyalty rewards users
 2. **Event Visitors (25-40)**: Festival attendees, seasonal customers
 3. **Families**: Need allergen info, parking details, kid-friendly options
@@ -17,6 +20,7 @@ Mobile app for Grill-Partner Maier restaurant in Kiel, Germany. A React Native E
 ## 🏗 Current Project Status
 
 ### ✅ Completed Components
+
 - Basic React Native Expo setup
 - Navigation structure (5 tabs: Home, Menu, Events, Chat, Profile)
 - Supabase client configuration
@@ -24,13 +28,14 @@ Mobile app for Grill-Partner Maier restaurant in Kiel, Germany. A React Native E
 - User state management (Zustand)
 - Push notification handler
 - Package dependencies installed (Vercel AI SDK, OpenAI, PostHog)
-
-### ❌ Pending Implementation
 - Database schema and types
 - All UI screens (currently placeholders)
 - Supabase data integration
 - AI chatbot functionality
 - Menu system with real data
+
+### ❌ Pending Implementation
+
 - Loyalty program
 - Event calendar
 - Styling and theming
@@ -38,9 +43,11 @@ Mobile app for Grill-Partner Maier restaurant in Kiel, Germany. A React Native E
 ## 🚀 Development Roadmap
 
 ### Phase 1: Foundation & Core Data (Days 1-3)
+
 **Goal**: Establish data layer and core functionality
 
 #### 1. Environment Setup
+
 - [ ] Create `.env.local` with credentials:
   ```
   EXPO_PUBLIC_SUPABASE_URL=
@@ -50,6 +57,7 @@ Mobile app for Grill-Partner Maier restaurant in Kiel, Germany. A React Native E
   ```
 
 #### 2. Supabase Integration
+
 - [ ] Generate database types from existing schema
 - [ ] Verify Speisekarte table structure
 - [ ] Set up Row Level Security (RLS) policies
@@ -65,6 +73,7 @@ Mobile app for Grill-Partner Maier restaurant in Kiel, Germany. A React Native E
   ```
 
 #### 3. Folder Structure
+
 ```
 src/
 ├── components/
@@ -105,9 +114,11 @@ src/
 ```
 
 ### Phase 2: Menu System (Days 4-6)
+
 **Goal**: Fully functional digital menu with real-time updates
 
 #### Features to Implement
+
 - [ ] Menu service with Supabase queries
 - [ ] Category filtering (Imbiss, Events, Eis)
 - [ ] Item detail view with images
@@ -117,6 +128,7 @@ src/
 - [ ] Search functionality
 
 #### Technical Implementation
+
 ```typescript
 // menuService.ts
 - fetchMenuItems(category?: string)
@@ -125,9 +137,11 @@ src/
 ```
 
 ### Phase 3: AI Chatbot (Days 7-10)
+
 **Goal**: Intelligent bilingual assistant using Vercel AI SDK
 
 #### Features to Implement
+
 - [ ] Chat UI with message history
 - [ ] Streaming responses using Vercel AI SDK
 - [ ] Language detection (German/English)
@@ -136,6 +150,7 @@ src/
 - [ ] Quick action buttons (hours, directions, menu)
 
 #### Technical Stack
+
 ```typescript
 // chatService.ts using Vercel AI SDK
 - streamChat(message: string, language: 'de' | 'en')
@@ -144,9 +159,11 @@ src/
 ```
 
 ### Phase 4: Events & Location (Days 11-13)
+
 **Goal**: Event discovery and restaurant information
 
 #### Events Calendar
+
 - [ ] Events list/calendar view
 - [ ] Event details (date, location, offerings)
 - [ ] Push notifications for events
@@ -154,6 +171,7 @@ src/
 - [ ] Integration with device calendar
 
 #### Location Features
+
 - [ ] Google Maps integration
 - [ ] Parking information
 - [ ] One-tap calling
@@ -161,9 +179,11 @@ src/
 - [ ] Directions button
 
 ### Phase 5: Authentication & Profile (Days 14-15)
+
 **Goal**: Complete user management system
 
 #### Features
+
 - [ ] Login/Signup UI
 - [ ] Email verification flow
 - [ ] Profile management
@@ -172,9 +192,11 @@ src/
 - [ ] Order history (future)
 
 ### Phase 6: Loyalty Program (Days 16-18)
+
 **Goal**: Points-based reward system
 
 #### Implementation
+
 - [ ] QR code scanner (expo-barcode-scanner)
 - [ ] Points tracking table
 - [ ] Rewards catalog
@@ -183,6 +205,7 @@ src/
 - [ ] Event-specific bonuses
 
 #### Database Schema
+
 ```sql
 loyalty_transactions (
   id uuid primary key,
@@ -195,9 +218,11 @@ loyalty_transactions (
 ```
 
 ### Phase 7: UI/UX Polish (Days 19-21)
+
 **Goal**: Professional, consistent design
 
 #### Tasks
+
 - [ ] Implement Tamagui theming
 - [ ] Loading states for all screens
 - [ ] Error handling and recovery
@@ -207,24 +232,29 @@ loyalty_transactions (
 - [ ] Accessibility features
 
 ### Phase 8: Notifications & Analytics (Days 22-23)
+
 **Goal**: Engagement and insights
 
 #### Push Notifications
+
 - [ ] Weekly offers (Angebotskalender)
 - [ ] Event reminders
 - [ ] Personalized based on favorites
 - [ ] Notification preferences
 
 #### Analytics (PostHog)
+
 - [ ] Screen tracking
 - [ ] User events
 - [ ] Conversion tracking
 - [ ] Error monitoring
 
 ### Phase 9: Testing & Optimization (Days 24-26)
+
 **Goal**: Production-ready app
 
 #### Testing
+
 - [ ] Unit tests for services
 - [ ] Integration tests
 - [ ] Device testing (iOS/Android)
@@ -232,9 +262,11 @@ loyalty_transactions (
 - [ ] Memory leak detection
 
 ### Phase 10: Deployment (Days 27-28)
+
 **Goal**: Launch to app stores
 
 #### Steps
+
 - [ ] Production environment setup
 - [ ] App store assets preparation
 - [ ] Privacy policy & terms
@@ -243,6 +275,7 @@ loyalty_transactions (
 - [ ] Marketing materials
 
 ## 📊 Success Metrics
+
 - **Downloads**: 1,000 in first 3 months
 - **Active Users**: 500 monthly
 - **Loyalty Redemption**: 10% of users within first month
@@ -250,6 +283,7 @@ loyalty_transactions (
 - **App Rating**: 4.5+ stars
 
 ## 🔧 Technical Stack
+
 - **Framework**: React Native + Expo
 - **Backend**: Supabase (PostgreSQL, Auth, Storage, Realtime)
 - **AI**: Vercel AI SDK + OpenAI (gpt-4o-mini)
@@ -261,12 +295,14 @@ loyalty_transactions (
 - **Maps**: Google Maps API
 
 ## 🚦 Risk Mitigation
+
 1. **API Rate Limits**: Implement caching, use gpt-4o-mini for cost
 2. **Offline Support**: Cache critical data, show appropriate messages
 3. **Performance**: Lazy loading, image optimization, pagination
 4. **Security**: RLS policies, secure credential storage, input validation
 
 ## 📝 Next Immediate Actions
+
 1. **Set up environment variables**
 2. **Generate Supabase types**
 3. **Create service architecture**
@@ -274,6 +310,7 @@ loyalty_transactions (
 5. **Build Chatbot** (key differentiator)
 
 ## 🎯 MVP Deliverables (Week 1)
+
 - Working menu with real data
 - Basic chatbot functionality
 - User authentication
@@ -281,12 +318,14 @@ loyalty_transactions (
 - Core navigation
 
 ## 📅 Timeline Summary
+
 - **Week 1**: Foundation + Menu + Auth
 - **Week 2**: Chatbot + Events
 - **Week 3**: Loyalty + Location
 - **Week 4**: Polish + Testing + Deployment
 
 ## 💡 Future Enhancements (Post-Launch)
+
 - Voice mode for chatbot
 - Online ordering system
 - Table reservations
@@ -298,6 +337,6 @@ loyalty_transactions (
 
 ---
 
-*Document Version: 1.0*
-*Last Updated: 2025*
-*Status: Active Development*
+_Document Version: 1.0_
+_Last Updated: 2025_
+_Status: Active Development_

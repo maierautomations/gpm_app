@@ -11,7 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import ChatService from '../services/chat/chatService';
+import ChatService from '../services/chat/chatServiceWithGemini';
 import MessageBubble from '../components/chat/MessageBubble';
 import ChatInput from '../components/chat/ChatInput';
 import { useUserStore } from '../stores/userStore';
