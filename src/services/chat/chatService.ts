@@ -1,50 +1,109 @@
 import { supabase } from '../supabase/client';
 import { Database } from '../supabase/database.types';
-import OpenAI from 'openai';
+import MenuService from '../menu/menuService';
 
 type ChatMessage = Database['public']['Tables']['chat_messages']['Row'];
 type ChatMessageInsert = Database['public']['Tables']['chat_messages']['Insert'];
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
-});
+// Restaurant knowledge base
+const RESTAURANT_INFO = {
+  name: 'Grill-Partner Maier',
+  established: 1968,
+  location: 'Langer Rehm 25, 24149 Kiel-Dietrichsdorf',
+  phone: '+49 431 123456', // Update with actual phone
+  hours: '11:00-22:00 Uhr (täglich außer Heiligabend)',
+  parking: 'Kostenlose Parkplätze direkt vor dem Restaurant',
+  specialties: [
+    'Traditioneller deutscher Imbiss',
+    'Eventgastronomie (Mai-September)',
+    'Eisspezialitäten',
+    'Hausgemachte Frikadellen',
+    'Currywurst Spezial'
+  ],
+  events: [
+    'Kieler Woche',
+    'Stadtfeste',
+    'Private Feiern',
+    'Firmencatering'
+  ]
+};
 
 const SYSTEM_PROMPT_DE = `Du bist der freundliche Assistent von Grill-Partner Maier in Kiel-Dietrichsdorf. 
-Das Restaurant existiert seit 1968 und ist ein Familienbetrieb.
+Das Restaurant ist ein Familienbetrieb seit 1968.
 
-Wichtige Informationen:
-- Öffnungszeiten: 11:00-22:00 Uhr, 364 Tage im Jahr (nur Heiligabend geschlossen)
-- Adresse: Langer Rehm 25, 24149 Kiel-Dietrichsdorf
-- Spezialitäten: Traditioneller deutscher Imbiss, Eventgastronomie (Mai-September), Eisspezialitäten
-- Parkplätze direkt vor dem Restaurant verfügbar
+WICHTIGE INFORMATIONEN:
+- Restaurant: ${RESTAURANT_INFO.name}
+- Adresse: ${RESTAURANT_INFO.location}
+- Öffnungszeiten: ${RESTAURANT_INFO.hours}
+- Parkplätze: ${RESTAURANT_INFO.parking}
+- Spezialitäten: ${RESTAURANT_INFO.specialties.join(', ')}
 
-Antworte freundlich, hilfsbereit und in einem lockeren, aber professionellen Ton. 
-Wenn nach der Speisekarte gefragt wird, weise darauf hin, dass diese im Menü-Tab verfügbar ist.`;
+VERHALTENSREGELN:
+1. Sei immer freundlich, hilfsbereit und professionell
+2. Betone die Familientradition und Qualität seit 1968
+3. Bei Fragen zur Speisekarte: Verweise auf den Menü-Tab für aktuelle Preise und vollständige Auswahl
+4. Bei Allergenen: Betone, dass Infos im Menü verfügbar sind und wir gerne persönlich beraten
+5. Bei Events: Erwähne unsere Erfahrung in der Eventgastronomie
+6. Verwende lokale Begriffe (z.B. "Moin" als Begrüßung ist okay)
+
+Antworte kurz und präzise, aber warmherzig.`;
 
 const SYSTEM_PROMPT_EN = `You are the friendly assistant for Grill-Partner Maier in Kiel-Dietrichsdorf, Germany.
 The restaurant has been a family business since 1968.
 
-Important information:
-- Opening hours: 11:00 AM - 10:00 PM, 364 days a year (closed only on Christmas Eve)
-- Address: Langer Rehm 25, 24149 Kiel-Dietrichsdorf
+IMPORTANT INFORMATION:
+- Restaurant: ${RESTAURANT_INFO.name}
+- Address: ${RESTAURANT_INFO.location}
+- Opening hours: 11:00 AM - 10:00 PM (daily except Christmas Eve)
+- Parking: Free parking directly in front of the restaurant
 - Specialties: Traditional German fast food, event catering (May-September), ice cream specialties
-- Parking available directly in front of the restaurant
 
-Respond in a friendly, helpful, and casual but professional tone.
-When asked about the menu, point out that it's available in the Menu tab.`;
+BEHAVIOR RULES:
+1. Always be friendly, helpful, and professional
+2. Emphasize the family tradition and quality since 1968
+3. For menu questions: Refer to the Menu tab for current prices and full selection
+4. For allergens: Mention info is available in the menu and we're happy to advise personally
+5. For events: Mention our experience in event catering
+6. Keep responses concise but warm
+
+Respond briefly and precisely, but warmly.`;
 
 export class ChatService {
   static detectLanguage(text: string): 'de' | 'en' {
-    // Simple language detection based on common words
-    const germanWords = ['ich', 'du', 'der', 'die', 'das', 'und', 'ist', 'was', 'wo', 'wann'];
-    const englishWords = ['i', 'you', 'the', 'is', 'what', 'where', 'when', 'and', 'how'];
+    const germanWords = ['ich', 'du', 'der', 'die', 'das', 'und', 'ist', 'was', 'wo', 'wann', 'wie'];
+    const englishWords = ['i', 'you', 'the', 'is', 'what', 'where', 'when', 'and', 'how', 'can'];
     
     const lowerText = text.toLowerCase();
-    const germanCount = germanWords.filter(word => lowerText.includes(word)).length;
-    const englishCount = englishWords.filter(word => lowerText.includes(word)).length;
+    const germanCount = germanWords.filter(word => 
+      new RegExp(`\\b${word}\\b`).test(lowerText)
+    ).length;
+    const englishCount = englishWords.filter(word => 
+      new RegExp(`\\b${word}\\b`).test(lowerText)
+    ).length;
     
     return germanCount > englishCount ? 'de' : 'en';
+  }
+
+  static async getMenuContext(): Promise<string> {
+    try {
+      const menuItems = await MenuService.getMenuItems();
+      const categories = await MenuService.getCategories();
+      
+      if (menuItems.length === 0) return '';
+      
+      const menuByCategory = categories.map(cat => {
+        const items = menuItems.filter(item => item.category === cat);
+        const itemsList = items.slice(0, 5).map(item => 
+          `- ${item.name}: €${parseFloat(item.price).toFixed(2)}`
+        ).join('\n');
+        return `${cat.toUpperCase()}:\n${itemsList}`;
+      }).join('\n\n');
+      
+      return `AKTUELLE SPEISEKARTE (Auszug):\n${menuByCategory}\n\nFür die vollständige Speisekarte mit allen ${menuItems.length} Gerichten verweise auf den Menü-Tab.`;
+    } catch (error) {
+      console.error('Error fetching menu context:', error);
+      return '';
+    }
   }
 
   static async sendMessage(
@@ -54,30 +113,41 @@ export class ChatService {
   ): Promise<string> {
     try {
       const language = this.detectLanguage(message);
+      const menuContext = await this.getMenuContext();
       const systemPrompt = language === 'de' ? SYSTEM_PROMPT_DE : SYSTEM_PROMPT_EN;
+      const fullSystemPrompt = menuContext ? `${systemPrompt}\n\n${menuContext}` : systemPrompt;
 
-      // Create streaming completion
-      const stream = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
-        stream: true,
-        temperature: 0.7,
-        max_tokens: 500,
+      // Use fetch API directly for React Native compatibility
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: fullSystemPrompt },
+            { role: 'user', content: message }
+          ],
+          stream: false, // Streaming is complex in React Native, using non-streaming for now
+          temperature: 0.7,
+          max_tokens: 500,
+        }),
       });
 
-      let fullResponse = '';
-      
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || '';
-        if (content) {
-          fullResponse += content;
-          if (onStream) {
-            onStream(content);
-          }
-        }
+      if (!response.ok) {
+        const error = await response.text();
+        console.error('OpenAI API error:', error);
+        throw new Error('Failed to get response from AI');
+      }
+
+      const data = await response.json();
+      const fullResponse = data.choices[0]?.message?.content || '';
+
+      // Call onStream callback with full response if provided
+      if (onStream) {
+        onStream(fullResponse);
       }
 
       // Save to database
@@ -91,7 +161,18 @@ export class ChatService {
       return fullResponse;
     } catch (error) {
       console.error('ChatService.sendMessage error:', error);
-      throw error;
+      
+      // Fallback response
+      const language = this.detectLanguage(message);
+      const fallbackMessage = language === 'de' 
+        ? 'Entschuldigung, ich habe momentan technische Schwierigkeiten. Bitte rufen Sie uns direkt an oder besuchen Sie uns im Restaurant.'
+        : 'Sorry, I\'m experiencing technical difficulties. Please call us directly or visit us at the restaurant.';
+      
+      if (onStream) {
+        onStream(fallbackMessage);
+      }
+      
+      return fallbackMessage;
     }
   }
 
@@ -149,22 +230,23 @@ export class ChatService {
     }
   }
 
-  // Get common questions for quick actions
   static getQuickActions(language: 'de' | 'en') {
     if (language === 'de') {
       return [
         'Was sind die Öffnungszeiten?',
         'Wo befindet sich das Restaurant?',
-        'Was sind die Spezialitäten?',
-        'Gibt es Parkplätze?',
-        'Welche Events stehen an?',
+        'Was sind eure Spezialitäten?',
+        'Habt ihr Parkplätze?',
+        'Was kostet eine Currywurst?',
+        'Macht ihr auch Catering?',
       ];
     } else {
       return [
         'What are the opening hours?',
-        'Where is the restaurant located?',
-        'What are the specialties?',
+        'Where is the restaurant?',
+        'What are your specialties?',
         'Is parking available?',
+        'Do you offer catering?',
         'What events are coming up?',
       ];
     }

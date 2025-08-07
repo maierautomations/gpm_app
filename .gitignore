@@ -56,6 +56,6 @@ dev-debug.log
 *.sw?
 # OS specific
 
-# Task files
-# tasks.json
-# tasks/ 
+claude.md
+feature_ideas
+project_plan.md
