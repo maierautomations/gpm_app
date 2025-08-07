@@ -15,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import EventsService from '../services/events/eventsService';
 import { Database } from '../services/supabase/database.types';
+import { useUserStore } from '../stores/userStore';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -24,9 +25,15 @@ export default function EventsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showPast, setShowPast] = useState(false);
+  const [favoriteEvents, setFavoriteEvents] = useState<string[]>([]);
+  
+  const user = useUserStore(state => state.user);
 
   useEffect(() => {
     loadEvents();
+    if (user) {
+      loadFavoriteEvents();
+    }
 
     // Subscribe to real-time updates
     const subscription = EventsService.subscribeToEventUpdates(() => {
@@ -36,7 +43,7 @@ export default function EventsScreen() {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [user]);
 
   const loadEvents = async () => {
     try {
@@ -62,9 +69,38 @@ export default function EventsScreen() {
     }
   };
 
+  const loadFavoriteEvents = async () => {
+    if (!user) return;
+    try {
+      const favorites = await EventsService.getFavoriteEvents(user.id);
+      setFavoriteEvents(favorites.map(event => event.id));
+    } catch (error) {
+      console.error('Error loading favorite events:', error);
+    }
+  };
+
+  const handleToggleFavorite = async (eventId: string) => {
+    if (!user) {
+      alert('Bitte melden Sie sich an, um Events zu favorisieren');
+      return;
+    }
+
+    const success = await EventsService.toggleFavoriteEvent(eventId, user.id);
+    if (success) {
+      if (favoriteEvents.includes(eventId)) {
+        setFavoriteEvents(favoriteEvents.filter(id => id !== eventId));
+      } else {
+        setFavoriteEvents([...favoriteEvents, eventId]);
+      }
+    }
+  };
+
   const onRefresh = () => {
     setRefreshing(true);
     loadEvents();
+    if (user) {
+      loadFavoriteEvents();
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -111,9 +147,23 @@ export default function EventsScreen() {
         
         <View style={styles.eventContent}>
           <View style={styles.eventHeader}>
-            <Text style={[styles.eventTitle, isPast && styles.pastEventTitle]}>
-              {item.title}
-            </Text>
+            <View style={styles.titleRow}>
+              <Text style={[styles.eventTitle, isPast && styles.pastEventTitle]}>
+                {item.title}
+              </Text>
+              {user && (
+                <TouchableOpacity 
+                  onPress={() => handleToggleFavorite(item.id)}
+                  style={styles.favoriteButton}
+                >
+                  <Ionicons 
+                    name={favoriteEvents.includes(item.id) ? "heart" : "heart-outline"} 
+                    size={24} 
+                    color={favoriteEvents.includes(item.id) ? "#FF0000" : "#999"} 
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
             <View style={[styles.dateBadge, isPast && styles.pastDateBadge]}>
               <Text style={[styles.daysUntil, isPast && styles.pastDaysUntil]}>
                 {getDaysUntil(item.date)}
@@ -318,6 +368,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   eventHeader: {
+    marginBottom: 8,
+  },
+  titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
@@ -329,6 +382,9 @@ const styles = StyleSheet.create({
     color: '#333',
     flex: 1,
     marginRight: 8,
+  },
+  favoriteButton: {
+    padding: 4,
   },
   pastEventTitle: {
     color: '#999',

@@ -46,31 +46,31 @@ export interface Database {
       }
       profiles: {
         Row: {
-          id: string
-          name: string | null
+          id: string // uuid
+          full_name: string | null
           email: string | null
-          favorites: number[] | null // Changed to number[] since menu_items.id is number
-          loyalty_points: number
+          favorites: Json | null // jsonb type - array of menu item IDs
+          favorite_events: Json | null // jsonb type - array of event IDs
+          loyalty_points: string | null // numeric type in Postgres returns as string
           created_at: string
-          updated_at: string
         }
         Insert: {
           id: string
-          name?: string | null
+          full_name?: string | null
           email?: string | null
-          favorites?: number[] | null
-          loyalty_points?: number
+          favorites?: Json | null
+          favorite_events?: Json | null
+          loyalty_points?: string | number | null
           created_at?: string
-          updated_at?: string
         }
         Update: {
           id?: string
-          name?: string | null
+          full_name?: string | null
           email?: string | null
-          favorites?: number[] | null
-          loyalty_points?: number
+          favorites?: Json | null
+          favorite_events?: Json | null
+          loyalty_points?: string | number | null
           created_at?: string
-          updated_at?: string
         }
       }
       events: {

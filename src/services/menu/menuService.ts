@@ -86,7 +86,11 @@ export class MenuService {
         return false;
       }
 
-      const currentFavorites = profile?.favorites || [];
+      // Parse favorites from JSONB - could be an array or null
+      const currentFavorites = Array.isArray(profile?.favorites) 
+        ? profile.favorites as number[]
+        : [];
+      
       let newFavorites: number[];
 
       if (currentFavorites.includes(itemId)) {
@@ -97,7 +101,7 @@ export class MenuService {
         newFavorites = [...currentFavorites, itemId];
       }
 
-      // Update favorites
+      // Update favorites as JSONB
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ favorites: newFavorites })
@@ -124,7 +128,17 @@ export class MenuService {
         .eq('id', userId)
         .single();
 
-      if (profileError || !profile?.favorites?.length) {
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        return [];
+      }
+
+      // Parse favorites from JSONB
+      const favoriteIds = Array.isArray(profile?.favorites) 
+        ? profile.favorites as number[]
+        : [];
+
+      if (favoriteIds.length === 0) {
         return [];
       }
 
@@ -132,7 +146,7 @@ export class MenuService {
       const { data, error } = await supabase
         .from('menu_items')
         .select('*')
-        .in('id', profile.favorites);
+        .in('id', favoriteIds);
 
       if (error) {
         console.error('Error fetching favorite items:', error);

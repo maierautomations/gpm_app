@@ -125,6 +125,96 @@ export class EventsService {
       .subscribe();
   }
 
+  // Favorite Events Methods
+  static async toggleFavoriteEvent(eventId: string, userId: string): Promise<boolean> {
+    try {
+      // First get current favorite events
+      const { data: profile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('favorite_events')
+        .eq('id', userId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching profile:', fetchError);
+        return false;
+      }
+
+      // Parse favorite events from JSONB - could be an array or null
+      const currentFavorites = Array.isArray(profile?.favorite_events) 
+        ? profile.favorite_events as string[]
+        : [];
+      
+      let newFavorites: string[];
+
+      if (currentFavorites.includes(eventId)) {
+        // Remove from favorites
+        newFavorites = currentFavorites.filter((id: string) => id !== eventId);
+      } else {
+        // Add to favorites
+        newFavorites = [...currentFavorites, eventId];
+      }
+
+      // Update favorite events as JSONB
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ favorite_events: newFavorites })
+        .eq('id', userId);
+
+      if (updateError) {
+        console.error('Error updating favorite events:', updateError);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('EventsService.toggleFavoriteEvent error:', error);
+      return false;
+    }
+  }
+
+  static async getFavoriteEvents(userId: string): Promise<Event[]> {
+    try {
+      // Get user's favorite event IDs
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('favorite_events')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        return [];
+      }
+
+      // Parse favorite events from JSONB
+      const favoriteIds = Array.isArray(profile?.favorite_events) 
+        ? profile.favorite_events as string[]
+        : [];
+
+      if (favoriteIds.length === 0) {
+        return [];
+      }
+
+      // Get events for those IDs
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .in('id', favoriteIds)
+        .order('date', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching favorite events:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('EventsService.getFavoriteEvents error:', error);
+      return [];
+    }
+  }
+
   // Get mock events for testing (if database is empty)
   static getMockEvents(): Event[] {
     const now = new Date();

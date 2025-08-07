@@ -27,6 +27,7 @@ export default function MenuScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState<number[]>([]);
   const [categories, setCategories] = useState<Array<{ id: string; label: string }>>([]);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   
   const user = useUserStore(state => state.user);
 
@@ -50,7 +51,7 @@ export default function MenuScreen() {
 
   useEffect(() => {
     filterItems();
-  }, [menuItems, selectedCategory, searchQuery]);
+  }, [menuItems, selectedCategory, searchQuery, showFavoritesOnly, favorites]);
 
   const loadMenuItems = async () => {
     try {
@@ -90,8 +91,13 @@ export default function MenuScreen() {
   const filterItems = () => {
     let filtered = [...menuItems];
 
+    // Filter by favorites
+    if (showFavoritesOnly) {
+      filtered = filtered.filter(item => favorites.includes(item.id));
+    }
+
     // Filter by category
-    if (selectedCategory) {
+    if (selectedCategory && !showFavoritesOnly) {
       filtered = filtered.filter(item => item.category === selectedCategory);
     }
 
@@ -169,7 +175,16 @@ export default function MenuScreen() {
         <MenuCategory
           categories={categories}
           selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
+          onSelectCategory={(cat) => {
+            setSelectedCategory(cat);
+            setShowFavoritesOnly(false);
+          }}
+          showFavoritesOnly={showFavoritesOnly}
+          onToggleFavorites={user ? () => {
+            setShowFavoritesOnly(!showFavoritesOnly);
+            setSelectedCategory(null);
+          } : undefined}
+          favoritesCount={favorites.length}
         />
       )}
 

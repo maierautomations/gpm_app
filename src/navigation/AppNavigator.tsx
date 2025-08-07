@@ -20,7 +20,7 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+          let iconName: keyof typeof Ionicons.glyphMap;
           if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';
           else if (route.name === 'Menu') iconName = focused ? 'restaurant' : 'restaurant-outline';
           else if (route.name === 'Events') iconName = focused ? 'calendar' : 'calendar-outline';
