@@ -3,7 +3,8 @@ import {
   View, 
   Text, 
   ScrollView, 
-  TouchableOpacity, 
+  TouchableOpacity,
+  TouchableWithoutFeedback,
   StyleSheet, 
   Image,
   Linking,
@@ -14,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '../stores/userStore';
 import MenuService from '../services/menu/menuService';
+import OffersService, { WeeklyOffer } from '../services/offers/offersService';
 import { Database } from '../services/supabase/database.types';
 import { useNavigation } from '@react-navigation/native';
 
@@ -23,6 +25,7 @@ export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const user = useUserStore(state => state.user);
   const [specialOffers, setSpecialOffers] = useState<MenuItem[]>([]);
+  const [currentOffers, setCurrentOffers] = useState<WeeklyOffer | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
@@ -45,6 +48,10 @@ export default function HomeScreen() {
 
   const loadData = async () => {
     try {
+      // Load current week's offers
+      const offers = await OffersService.getCurrentWeekOffers();
+      setCurrentOffers(offers);
+      
       // Load special offers or featured items
       const items = await MenuService.getMenuItems();
       // For now, show first 3 items as "specials"
@@ -63,7 +70,7 @@ export default function HomeScreen() {
   };
 
   const handleCall = () => {
-    Linking.openURL('tel:+494311234567'); // Update with actual phone
+    Linking.openURL('tel:+491734661549'); // Update with actual phone
   };
 
   const handleDirections = () => {
@@ -120,6 +127,65 @@ export default function HomeScreen() {
             </Text>
           </View>
         </View>
+
+        {/* Offers Banner */}
+        {currentOffers && currentOffers.items.length > 0 && (
+          <View style={styles.offersBanner}>
+            <TouchableWithoutFeedback 
+              onPress={() => navigation.navigate('Menu', { showOffers: true })}
+              delayPressIn={100}
+            >
+              <View style={styles.offersBannerContent}>
+                <View style={styles.offersBadge}>
+                  <Text style={styles.offersBadgeText}>ANGEBOT</Text>
+                </View>
+                <View style={styles.offersInfo}>
+                  <Text style={styles.offersTitle}>{currentOffers.week.week_theme}</Text>
+                  <Text style={styles.offersSubtitle}>
+                    {currentOffers.items.length} Artikel im Angebot!
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color="#FFF" />
+              </View>
+            </TouchableWithoutFeedback>
+            
+            {/* Show all offer items with scroll */}
+            <View style={styles.offersScrollContainer}>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                style={styles.offersPreview}
+                contentContainerStyle={styles.offersScrollContent}
+              >
+                {currentOffers.items.map((item, index) => (
+                  <View key={item.id} style={[
+                    styles.offerItem,
+                    index === 0 && styles.offerItemFirst,
+                    index === currentOffers.items.length - 1 && styles.offerItemLast
+                  ]}>
+                    {item.highlight_badge && (
+                      <Text style={styles.offerHighlightBadge}>{item.highlight_badge}</Text>
+                    )}
+                    <Text style={styles.offerItemName} numberOfLines={2}>
+                      {item.menu_item.name}
+                    </Text>
+                    <View style={styles.offerPriceContainer}>
+                      <Text style={styles.offerOriginalPrice}>
+                        €{parseFloat(item.original_price).toFixed(2)}
+                      </Text>
+                      <Text style={styles.offerSpecialPrice}>
+                        €{parseFloat(item.special_price).toFixed(2)}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+              {currentOffers.items.length > 3 && (
+                <Text style={styles.scrollHint}>→ Wischen für mehr</Text>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Quick Actions */}
         <View style={styles.quickActions}>
@@ -424,5 +490,115 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     marginTop: 4,
+  },
+  offersBanner: {
+    backgroundColor: '#FF0000',
+    margin: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  offersBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  offersBadge: {
+    backgroundColor: '#FFF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    marginRight: 12,
+  },
+  offersBadgeText: {
+    color: '#FF0000',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  offersInfo: {
+    flex: 1,
+  },
+  offersTitle: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  offersSubtitle: {
+    color: '#FFE0E0',
+    fontSize: 14,
+    marginTop: 2,
+  },
+  offersScrollContainer: {
+    position: 'relative',
+  },
+  offersPreview: {
+    marginTop: 8,
+  },
+  offersScrollContent: {
+    paddingRight: 16,
+  },
+  offerItem: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 12,
+    borderRadius: 8,
+    marginRight: 10,
+    width: 150,
+    minHeight: 90,
+  },
+  offerItemFirst: {
+    marginLeft: 0,
+  },
+  offerItemLast: {
+    marginRight: 0,
+  },
+  offerItemName: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+    minHeight: 36,
+  },
+  offerPriceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  offerOriginalPrice: {
+    color: '#FFE0E0',
+    fontSize: 12,
+    textDecorationLine: 'line-through',
+    marginRight: 8,
+  },
+  offerSpecialPrice: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  offerHighlightBadge: {
+    backgroundColor: '#FFD700',
+    color: '#333',
+    fontSize: 9,
+    fontWeight: 'bold',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 3,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+  scrollHint: {
+    position: 'absolute',
+    bottom: 4,
+    right: 16,
+    color: '#FFE0E0',
+    fontSize: 11,
+    fontStyle: 'italic',
   },
 });

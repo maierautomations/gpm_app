@@ -10,11 +10,14 @@ interface MenuItemProps {
   isFavorite?: boolean;
   onPress: () => void;
   onToggleFavorite?: () => void;
+  offerPrice?: string;
+  isOffer?: boolean;
 }
 
-export default function MenuItem({ item, isFavorite, onPress, onToggleFavorite }: MenuItemProps) {
+export default function MenuItem({ item, isFavorite, onPress, onToggleFavorite, offerPrice, isOffer }: MenuItemProps) {
   // Parse price (it comes as string from numeric field)
   const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
+  const specialPrice = offerPrice ? parseFloat(offerPrice) : null;
   
   // Parse allergens if they exist
   const allergenCount = item.allergens ? 
@@ -25,6 +28,11 @@ export default function MenuItem({ item, isFavorite, onPress, onToggleFavorite }
     <TouchableOpacity style={styles.container} onPress={onPress}>
       {item.image_url && (
         <Image source={{ uri: item.image_url }} style={styles.image} />
+      )}
+      {isOffer && (
+        <View style={styles.offerBadge}>
+          <Text style={styles.offerBadgeText}>ANGEBOT</Text>
+        </View>
       )}
       <View style={styles.content}>
         <View style={styles.header}>
@@ -45,7 +53,19 @@ export default function MenuItem({ item, isFavorite, onPress, onToggleFavorite }
           </Text>
         )}
         <View style={styles.footer}>
-          <Text style={styles.price}>€{price.toFixed(2)}</Text>
+          <View style={styles.priceContainer}>
+            {specialPrice ? (
+              <>
+                <Text style={styles.originalPrice}>€{price.toFixed(2)}</Text>
+                <Text style={styles.specialPrice}>€{specialPrice.toFixed(2)}</Text>
+                <Text style={styles.savingsBadge}>
+                  Spare €{(price - specialPrice).toFixed(2)}
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.price}>€{price.toFixed(2)}</Text>
+            )}
+          </View>
           {allergenCount > 0 && (
             <View style={styles.allergens}>
               <Ionicons name="warning-outline" size={16} color="#FF6B6B" />
@@ -119,5 +139,44 @@ const styles = StyleSheet.create({
   allergenText: {
     fontSize: 12,
     color: '#FF6B6B',
+  },
+  offerBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: '#FF6B00',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    zIndex: 1,
+  },
+  offerBadgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  originalPrice: {
+    fontSize: 14,
+    color: '#999',
+    textDecorationLine: 'line-through',
+  },
+  specialPrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FF6B00',
+  },
+  savingsBadge: {
+    backgroundColor: '#FFE0CC',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    fontSize: 11,
+    color: '#FF6B00',
+    fontWeight: '600',
   },
 });

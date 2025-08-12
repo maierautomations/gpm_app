@@ -11,14 +11,18 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MenuService from '../services/menu/menuService';
+import OffersService, { WeeklyOffer } from '../services/offers/offersService';
 import MenuItem from '../components/menu/MenuItem';
 import MenuCategory from '../components/menu/MenuCategory';
 import { useUserStore } from '../stores/userStore';
 import { Database } from '../services/supabase/database.types';
+import { useRoute, RouteProp } from '@react-navigation/native';
 
 type MenuItemType = Database['public']['Tables']['menu_items']['Row'];
+type MenuScreenRouteProp = RouteProp<{ Menu: { showOffers?: boolean } }, 'Menu'>;
 
 export default function MenuScreen() {
+  const route = useRoute<MenuScreenRouteProp>();
   const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
   const [filteredItems, setFilteredItems] = useState<MenuItemType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,14 +32,26 @@ export default function MenuScreen() {
   const [favorites, setFavorites] = useState<number[]>([]);
   const [categories, setCategories] = useState<Array<{ id: string; label: string }>>([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [showOffersOnly, setShowOffersOnly] = useState(false);
+  const [currentOffers, setCurrentOffers] = useState<WeeklyOffer | null>(null);
+  const [offerItemIds, setOfferItemIds] = useState<number[]>([]);
+  const [offerPrices, setOfferPrices] = useState<Map<number, string>>(new Map());
   
   const user = useUserStore(state => state.user);
 
   useEffect(() => {
     loadMenuItems();
     loadCategories();
+    loadCurrentOffers();
     if (user) {
       loadFavorites();
+    }
+
+    // Check if we should show offers from navigation
+    if (route.params?.showOffers) {
+      setShowOffersOnly(true);
+      setShowFavoritesOnly(false);
+      setSelectedCategory(null);
     }
 
     // Subscribe to real-time updates
@@ -47,11 +63,11 @@ export default function MenuScreen() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [user]);
+  }, [user, route.params?.showOffers]);
 
   useEffect(() => {
     filterItems();
-  }, [menuItems, selectedCategory, searchQuery, showFavoritesOnly, favorites]);
+  }, [menuItems, selectedCategory, searchQuery, showFavoritesOnly, showOffersOnly, favorites, offerItemIds]);
 
   const loadMenuItems = async () => {
     try {
@@ -88,16 +104,41 @@ export default function MenuScreen() {
     }
   };
 
+  const loadCurrentOffers = async () => {
+    try {
+      const offers = await OffersService.getCurrentWeekOffers();
+      if (offers) {
+        setCurrentOffers(offers);
+        // Extract item IDs and prices for easy lookup
+        const ids = offers.items.map(item => item.menu_item.id);
+        setOfferItemIds(ids);
+        
+        const prices = new Map<number, string>();
+        offers.items.forEach(item => {
+          prices.set(item.menu_item.id, item.special_price);
+        });
+        setOfferPrices(prices);
+      }
+    } catch (error) {
+      console.error('Error loading offers:', error);
+    }
+  };
+
   const filterItems = () => {
     let filtered = [...menuItems];
 
+    // Filter by offers
+    if (showOffersOnly) {
+      filtered = filtered.filter(item => offerItemIds.includes(item.id));
+    }
+
     // Filter by favorites
-    if (showFavoritesOnly) {
+    if (showFavoritesOnly && !showOffersOnly) {
       filtered = filtered.filter(item => favorites.includes(item.id));
     }
 
     // Filter by category
-    if (selectedCategory && !showFavoritesOnly) {
+    if (selectedCategory && !showFavoritesOnly && !showOffersOnly) {
       filtered = filtered.filter(item => item.category === selectedCategory);
     }
 
@@ -138,6 +179,10 @@ export default function MenuScreen() {
     setRefreshing(true);
     loadMenuItems();
     loadCategories();
+    loadCurrentOffers();
+    if (user) {
+      loadFavorites();
+    }
   };
 
   if (loading) {
@@ -178,13 +223,23 @@ export default function MenuScreen() {
           onSelectCategory={(cat) => {
             setSelectedCategory(cat);
             setShowFavoritesOnly(false);
+            setShowOffersOnly(false);
           }}
           showFavoritesOnly={showFavoritesOnly}
           onToggleFavorites={user ? () => {
             setShowFavoritesOnly(!showFavoritesOnly);
+            setShowOffersOnly(false);
             setSelectedCategory(null);
           } : undefined}
           favoritesCount={favorites.length}
+          showOffersOnly={showOffersOnly}
+          onToggleOffers={currentOffers ? () => {
+            setShowOffersOnly(!showOffersOnly);
+            setShowFavoritesOnly(false);
+            setSelectedCategory(null);
+          } : undefined}
+          offersWeekTheme={currentOffers?.week.week_theme}
+          offersCount={currentOffers?.items.length || 0}
         />
       )}
 
@@ -209,6 +264,8 @@ export default function MenuScreen() {
               isFavorite={favorites.includes(item.id)}
               onPress={() => handleItemPress(item)}
               onToggleFavorite={user ? () => handleToggleFavorite(item.id) : undefined}
+              offerPrice={offerPrices.get(item.id)}
+              isOffer={offerItemIds.includes(item.id)}
             />
           )}
           refreshControl={

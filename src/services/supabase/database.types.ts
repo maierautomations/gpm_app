@@ -16,6 +16,7 @@ export interface Database {
           description: string | null
           price: string // numeric type in Postgres returns as string
           category: string
+          subcategory: string | null
           image_url: string | null
           allergens: Json | null // jsonb type
           is_available: boolean
@@ -27,6 +28,7 @@ export interface Database {
           description?: string | null
           price: string | number
           category: string
+          subcategory?: string | null
           image_url?: string | null
           allergens?: Json | null
           is_available?: boolean
@@ -38,6 +40,7 @@ export interface Database {
           description?: string | null
           price?: string | number
           category?: string
+          subcategory?: string | null
           image_url?: string | null
           allergens?: Json | null
           is_available?: boolean
@@ -134,64 +137,157 @@ export interface Database {
           created_at?: string
         }
       }
-      loyalty_transactions: {
+      angebotskalender_weeks: {
         Row: {
           id: string
-          user_id: string
-          points: number
-          type: 'earned' | 'redeemed'
+          week_number: number
+          week_theme: string
           description: string | null
+          banner_image_url: string | null
+          is_active: boolean
+          start_date: string | null
+          end_date: string | null
           created_at: string
         }
         Insert: {
           id?: string
-          user_id: string
-          points: number
-          type: 'earned' | 'redeemed'
+          week_number: number
+          week_theme: string
           description?: string | null
+          banner_image_url?: string | null
+          is_active?: boolean
+          start_date?: string | null
+          end_date?: string | null
           created_at?: string
         }
         Update: {
           id?: string
-          user_id?: string
-          points?: number
-          type?: 'earned' | 'redeemed'
+          week_number?: number
+          week_theme?: string
           description?: string | null
+          banner_image_url?: string | null
+          is_active?: boolean
+          start_date?: string | null
+          end_date?: string | null
           created_at?: string
         }
       }
-      angebotskalender: {
+      angebotskalender_items: {
         Row: {
           id: string
-          title: string
-          description: string | null
-          valid_from: string
-          valid_until: string
-          discount_percentage: number | null
-          special_price: number | null
-          menu_item_id: string | null
+          week_id: string | null
+          menu_item_id: number | null
+          special_price: string // numeric type in Postgres returns as string
+          highlight_badge: string | null
           created_at: string
         }
         Insert: {
           id?: string
-          title: string
-          description?: string | null
-          valid_from: string
-          valid_until: string
-          discount_percentage?: number | null
-          special_price?: number | null
-          menu_item_id?: string | null
+          week_id?: string | null
+          menu_item_id?: number | null
+          special_price: string | number
+          highlight_badge?: string | null
           created_at?: string
         }
         Update: {
           id?: string
-          title?: string
+          week_id?: string | null
+          menu_item_id?: number | null
+          special_price?: string | number
+          highlight_badge?: string | null
+          created_at?: string
+        }
+      }
+      gallery_photos: {
+        Row: {
+          id: string
+          category: string
+          title: string | null
+          description: string | null
+          image_url: string
+          thumbnail_url: string | null
+          is_featured: boolean
+          display_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          category: string
+          title?: string | null
           description?: string | null
-          valid_from?: string
-          valid_until?: string
-          discount_percentage?: number | null
-          special_price?: number | null
-          menu_item_id?: string | null
+          image_url: string
+          thumbnail_url?: string | null
+          is_featured?: boolean
+          display_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          category?: string
+          title?: string | null
+          description?: string | null
+          image_url?: string
+          thumbnail_url?: string | null
+          is_featured?: boolean
+          display_order?: number
+          created_at?: string
+        }
+      }
+      loyalty_codes: {
+        Row: {
+          id: string
+          code: string
+          points: number
+          valid_until: string | null
+          max_uses: number
+          current_uses: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          code: string
+          points: number
+          valid_until?: string | null
+          max_uses?: number
+          current_uses?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          code?: string
+          points?: number
+          valid_until?: string | null
+          max_uses?: number
+          current_uses?: number
+          created_at?: string
+        }
+      }
+      loyalty_transactions: {
+        Row: {
+          id: string
+          user_id: string | null
+          code_id: string | null
+          points: number
+          type: 'earned' | 'redeemed'
+          description: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          code_id?: string | null
+          points: number
+          type: 'earned' | 'redeemed'
+          description?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          code_id?: string | null
+          points?: number
+          type?: 'earned' | 'redeemed'
+          description?: string | null
           created_at?: string
         }
       }

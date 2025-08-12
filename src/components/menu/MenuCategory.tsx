@@ -12,6 +12,10 @@ interface MenuCategoryProps {
   showFavoritesOnly?: boolean;
   onToggleFavorites?: () => void;
   favoritesCount?: number;
+  showOffersOnly?: boolean;
+  onToggleOffers?: () => void;
+  offersWeekTheme?: string;
+  offersCount?: number;
 }
 
 export default function MenuCategory({ 
@@ -20,7 +24,11 @@ export default function MenuCategory({
   onSelectCategory,
   showFavoritesOnly,
   onToggleFavorites,
-  favoritesCount = 0
+  favoritesCount = 0,
+  showOffersOnly,
+  onToggleOffers,
+  offersWeekTheme,
+  offersCount = 0
 }: MenuCategoryProps) {
   return (
     <View style={styles.container}>
@@ -29,6 +37,25 @@ export default function MenuCategory({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {onToggleOffers && (
+          <TouchableOpacity
+            style={[
+              styles.categoryButton,
+              styles.offersButton,
+              showOffersOnly && styles.offersButtonActive
+            ]}
+            onPress={onToggleOffers}
+          >
+            <Text style={styles.offerIcon}>🔥</Text>
+            <Text style={[
+              styles.categoryText,
+              showOffersOnly && styles.categoryTextActive
+            ]}>
+              {offersWeekTheme || 'Angebote'} {offersCount > 0 && `(${offersCount})`}
+            </Text>
+          </TouchableOpacity>
+        )}
+        
         {onToggleFavorites && (
           <TouchableOpacity
             style={[
@@ -55,13 +82,13 @@ export default function MenuCategory({
         <TouchableOpacity
           style={[
             styles.categoryButton,
-            !selectedCategory && !showFavoritesOnly && styles.categoryButtonActive
+            !selectedCategory && !showFavoritesOnly && !showOffersOnly && styles.categoryButtonActive
           ]}
           onPress={() => onSelectCategory(null)}
         >
           <Text style={[
             styles.categoryText,
-            !selectedCategory && !showFavoritesOnly && styles.categoryTextActive
+            !selectedCategory && !showFavoritesOnly && !showOffersOnly && styles.categoryTextActive
           ]}>
             Alle
           </Text>
@@ -72,13 +99,13 @@ export default function MenuCategory({
             key={category.id}
             style={[
               styles.categoryButton,
-              selectedCategory === category.id && !showFavoritesOnly && styles.categoryButtonActive
+              selectedCategory === category.id && !showFavoritesOnly && !showOffersOnly && styles.categoryButtonActive
             ]}
             onPress={() => onSelectCategory(category.id)}
           >
             <Text style={[
               styles.categoryText,
-              selectedCategory === category.id && !showFavoritesOnly && styles.categoryTextActive
+              selectedCategory === category.id && !showFavoritesOnly && !showOffersOnly && styles.categoryTextActive
             ]}>
               {category.label}
             </Text>
@@ -129,5 +156,20 @@ const styles = StyleSheet.create({
   favoriteButtonActive: {
     backgroundColor: '#FF0000',
     borderColor: '#FF0000',
+  },
+  offersButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: '#FF6B00',
+    backgroundColor: '#FFF5F0',
+  },
+  offersButtonActive: {
+    backgroundColor: '#FF6B00',
+    borderColor: '#FF6B00',
+  },
+  offerIcon: {
+    fontSize: 16,
   },
 });

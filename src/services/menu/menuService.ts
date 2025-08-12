@@ -175,29 +175,30 @@ export class MenuService {
       .subscribe();
   }
 
-  static async getSpecialOffers(): Promise<any[]> {
+  static async getSpecialOffers(): Promise<any> {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      
-      const { data, error } = await supabase
-        .from('angebotskalender')
+      // Get the current active week
+      const { data: activeWeek, error: weekError } = await supabase
+        .from('angebotskalender_weeks')
         .select(`
           *,
-          menu_items (*)
+          angebotskalender_items (
+            *,
+            menu_item:menu_items (*)
+          )
         `)
-        .lte('valid_from', today)
-        .gte('valid_until', today)
-        .order('created_at', { ascending: false });
+        .eq('is_active', true)
+        .single();
 
-      if (error) {
-        console.error('Error fetching special offers:', error);
-        return [];
+      if (weekError) {
+        console.error('Error fetching active week:', weekError);
+        return null;
       }
 
-      return data || [];
+      return activeWeek;
     } catch (error) {
       console.error('MenuService.getSpecialOffers error:', error);
-      return [];
+      return null;
     }
   }
 
