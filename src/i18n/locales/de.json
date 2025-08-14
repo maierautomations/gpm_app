@@ -1,0 +1,77 @@
+{
+  "common": {
+    "loading": "Lädt...",
+    "error": "Fehler",
+    "retry": "Erneut versuchen",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "search": "Suchen"
+  },
+  "navigation": {
+    "home": "Start",
+    "menu": "Speisekarte",
+    "events": "Veranstaltungen",
+    "chat": "Chat",
+    "profile": "Profil"
+  },
+  "home": {
+    "welcome": "Willkommen bei Grill-Partner Maier",
+    "subtitle": "Seit 1968 in Kiel",
+    "quickActions": "Schnellzugriff",
+    "weeklyOffers": "Wochenangebote",
+    "viewMenu": "Zur Speisekarte",
+    "scanQR": "QR-Code scannen"
+  },
+  "menu": {
+    "title": "Unsere Speisekarte",
+    "categories": "Kategorien",
+    "all": "Alle",
+    "favorites": "Favoriten",
+    "offers": "Angebote",
+    "addToFavorites": "Zu Favoriten hinzufügen",
+    "removeFromFavorites": "Aus Favoriten entfernen",
+    "price": "Preis",
+    "allergens": "Allergene"
+  },
+  "events": {
+    "title": "Veranstaltungen",
+    "upcoming": "Bevorstehend",
+    "past": "Vergangen",
+    "location": "Ort",
+    "date": "Datum",
+    "offerings": "Angebot",
+    "noEvents": "Keine Veranstaltungen gefunden"
+  },
+  "chat": {
+    "title": "Chat-Assistent",
+    "placeholder": "Stellen Sie eine Frage...",
+    "send": "Senden",
+    "thinking": "Denkt nach..."
+  },
+  "profile": {
+    "title": "Mein Profil",
+    "loyaltyPoints": "Treuepunkte",
+    "collectPoints": "Punkte sammeln",
+    "favorites": "Meine Favoriten",
+    "settings": "Einstellungen",
+    "logout": "Abmelden",
+    "login": "Anmelden",
+    "register": "Registrieren"
+  },
+  "offers": {
+    "weeklySpecial": "Wochenangebot",
+    "burgerWeek": "Burger Woche",
+    "doenerWeek": "Döner Woche",
+    "schnitzelWeek": "Schnitzel Woche",
+    "savings": "Sie sparen",
+    "specialPrice": "Sonderpreis"
+  },
+  "loyalty": {
+    "scanCode": "Code scannen",
+    "enterCode": "Code eingeben",
+    "pointsEarned": "Punkte erhalten",
+    "pointsRedeemed": "Punkte eingelöst",
+    "history": "Verlauf"
+  }
+}

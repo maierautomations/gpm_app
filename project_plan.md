@@ -58,10 +58,10 @@ Mobile app for Grill-Partner Maier restaurant in Kiel, Germany. A React Native E
 
 #### 2. Supabase Integration
 
-- [ ] Generate database types from existing schema
-- [ ] Verify Speisekarte table structure
-- [ ] Set up Row Level Security (RLS) policies
-- [ ] Create profiles table (if not exists):
+- [x] Generate database types from existing schema
+- [x] Verify Speisekarte table structure
+- [x] Set up Row Level Security (RLS) policies
+- [x] Create profiles table (if not exists):
   ```sql
   profiles (
     id uuid references auth.users primary key,

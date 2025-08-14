@@ -18,34 +18,80 @@ npm install
 
 # Generate Supabase types (when schema changes)
 npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/services/supabase/database.types.ts
+
+# Linting and formatting
+npx eslint src/                # Check code quality
+npx prettier --write src/       # Format code
 ```
 
 ## Architecture Overview
 
-This is a React Native Expo app for Grill-Partner Maier, a German restaurant in Kiel (since 1968). The architecture follows a service-oriented pattern:
+This is a React Native Expo app for Grill-Partner Maier, a German restaurant in Kiel (since 1968). The architecture follows a feature-based organization pattern with service-oriented design for optimal UX and maintainability.
 
 ### Core Stack
 - **Frontend**: React Native 0.79.5 with Expo SDK 53
 - **State Management**: Zustand for global state (user authentication)
 - **Backend**: Supabase (PostgreSQL, Auth, Realtime, Storage)
-- **Navigation**: React Navigation with bottom tabs
-- **AI Integration**: OpenAI API (direct fetch, not OpenAI library - React Native compatibility issue)
+- **Navigation**: React Navigation with bottom tabs (simple, no drawer)
+- **AI Integration**: Google Gemini API (95% cheaper than OpenAI, direct fetch)
+- **Code Quality**: ESLint and Prettier configured
+- **Structure**: Feature-based architecture (see FOLDER_STRUCTURE.md for details)
 
 ### Key Architectural Decisions
 
-1. **Service Layer Pattern**: All Supabase interactions go through service classes in `src/services/`
-   - Each domain has its own service (MenuService, EventsService, ChatService)
+1. **Service Layer Pattern**: All Supabase interactions go through service classes
+   - Feature services located in `src/features/[feature]/services/`
+   - Core services (Supabase client) in `src/services/supabase/`
+   - Each domain has its own service (MenuService, EventsService, ChatService, OffersService, GalleryService, LoyaltyService)
    - Services return typed data from `database.types.ts`
    - Real-time subscriptions handled at service level
 
 2. **Environment Variables**: Use `.env.local` (Expo convention) with `EXPO_PUBLIC_` prefix
-   - Required: SUPABASE_URL, SUPABASE_ANON_KEY, OPENAI_API_KEY
+   - Required: SUPABASE_URL, SUPABASE_ANON_KEY, GEMINI_API_KEY
    - Optional: GOOGLE_MAPS_API_KEY, POSTHOG keys
 
 3. **Authentication Flow**: 
    - Supabase Auth with email/password
    - User profiles table synced with auth.users
    - ExpoSecureStore for token persistence
+
+4. **Cost Optimization**:
+   - Switched from OpenAI to Google Gemini (95% cost reduction)
+   - Prepared caching layer for common queries (not yet implemented)
+
+5. **Navigation Philosophy**:
+   - Keep it simple - bottom tabs only, no drawer
+   - Features integrated into existing screens
+   - Stack navigation for detail views (Gallery, QR Scanner)
+
+## Folder Structure
+
+The app uses a feature-based architecture for better scalability and maintainability:
+
+```
+src/
+├── app/              # App configuration (App.tsx, navigation)
+├── features/         # Feature modules (menu, events, chat, etc.)
+│   └── [feature]/
+│       ├── components/   # Feature-specific components
+│       ├── screens/      # Screen components
+│       ├── services/     # Business logic
+│       └── types.ts      # TypeScript types
+├── shared/           # Shared resources
+│   └── components/   # Reusable UI components
+├── services/         # Core services (Supabase)
+├── stores/           # Global state (Zustand)
+├── theme/            # Design system (colors, typography, spacing)
+├── i18n/             # Internationalization
+└── types/            # Global TypeScript types
+```
+
+**Import Conventions:**
+- Use relative imports within a feature: `import MenuItem from '../components/MenuItem'`
+- Use absolute imports from src root for cross-feature: `import { useUserStore } from '../../../stores/userStore'`
+- Shared components: `import { Button } from '../../../shared/components/Button'`
+
+For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 
 ## Database Schema
 
@@ -56,6 +102,7 @@ This is a React Native Expo app for Grill-Partner Maier, a German restaurant in 
 - `name`: string
 - `price`: string (numeric in Postgres)
 - `category`: string (dynamic categories)
+- `subcategory`: string (for filtering within categories)
 - `is_available`: boolean
 - `allergens`: jsonb
 - `image_url`: string
@@ -63,6 +110,7 @@ This is a React Native Expo app for Grill-Partner Maier, a German restaurant in 
 **profiles**
 - `id`: uuid (references auth.users)
 - `favorites`: number[] (menu_item IDs)
+- `favorite_events`: jsonb (event IDs)
 - `loyalty_points`: number
 - `name`, `email`: user info
 
@@ -76,58 +124,176 @@ This is a React Native Expo app for Grill-Partner Maier, a German restaurant in 
 - `language`: 'de' | 'en'
 - `user_id`, `message`, `response`
 
+**angebotskalender_weeks** (7 rotating weekly themes)
+- `id`: uuid (primary key)
+- `week_number`: 1-7 (rotation cycle)
+- `week_theme`: string (e.g., "Burger Woche", "Döner Woche")
+- `is_active`: boolean (current active week)
+- `start_date`, `end_date`: optional date tracking
+
+**angebotskalender_items** (specific discounted items)
+- `week_id`: references angebotskalender_weeks
+- `menu_item_id`: references menu_items
+- `special_price`: fixed discount price (not percentage)
+- `highlight_badge`: optional badge (e.g., "Premium", "XXL")
+
+**gallery_photos** (photo gallery - database ready, UI pending)
+- `category`: 'restaurant' | 'events' | 'eis'
+- `image_url`, `thumbnail_url`
+- `is_featured`: for home preview
+- `display_order`: for sorting
+
+**loyalty_codes** (QR code validation - database ready, scanner pending)
+- `code`: unique identifier
+- `points`: value
+- `valid_until`: expiration
+- `max_uses`, `current_uses`: usage tracking
+
+**loyalty_transactions** (points history - database ready, UI pending)
+- `user_id`: who earned/redeemed
+- `code_id`: which code was used
+- `type`: 'earned' | 'redeemed'
+- `points`: amount
+
 ## Key Implementation Details
 
 ### Menu System
-- Categories dynamically loaded from database (not hardcoded)
+- Categories dynamically loaded from database
 - Real-time updates via Supabase subscriptions
-- Favorites stored as number array in profiles
-- Price handling: Postgres numeric type returns as string, parse for display
+- Favorites with filter functionality
+- **Offers Integration**: "🔥 Burger Woche" filter tab in MenuScreen
+- Special price display with strikethrough and savings badge
+- Orange theme (#FF6B00) for offer items
+
+### Angebotskalender (Weekly Offers)
+- **7 rotating weekly themes**: Burger, Döner, Boxen, Schnitzel, Gyros, Wurst, Croque
+- **Fixed discount prices**: Not percentages, specific prices per item
+- **Horizontal scrolling**: All 8 offer items visible on HomeScreen
+- **Smart filtering**: Dedicated offers filter in MenuScreen
+- **Visual indicators**: "ANGEBOT" badges, strikethrough pricing, savings amount
 
 ### AI Chatbot
-- **Important**: Direct fetch API, not OpenAI library (React Native incompatibility)
+- **Using Google Gemini Flash** (not OpenAI)
+- Direct fetch API for React Native compatibility
 - Bilingual (German/English) with automatic detection
-- System prompt includes restaurant info and current menu context
-- Knowledge base in `ChatService` includes hours, location, specialties
+- System prompt includes restaurant info and menu context
+- Chat history saved via ChatMessageService
+
+### Event System
+- Favorites functionality (favorite_events in profiles)
+- Real-time updates via subscriptions
+- **Calendar View**: Toggle between list and calendar views
+- Past/upcoming event separation
+- Quick preview on calendar date selection
+
+### Home Screen Hub
+- **Gallery Preview**: Horizontal scroll of featured photos (planned)
+- **Quick Actions**: Including QR scanner access (planned)
+- **Weekly Offers Banner**: Horizontal scroll showing all discounted items
+- **Touch-optimized**: ScrollView separated from TouchableWithoutFeedback
+- Central access point for key features
+
+### Profile & Loyalty
+- **QR Scanner Integration**: Prominent "Punkte sammeln" button
+- Points balance display
+- Transaction history
+- Favorites management (menu items & events)
+
+### Photo Gallery
+- **Accessed from HomeScreen**: Preview → Full gallery
+- Categories: Restaurant, Events, Eis-Spezialitäten
+- Full-screen viewer with zoom/share
+- Lazy loading and caching
 
 ### Restaurant-Specific Features
 - Opening hours: 11:00-22:00 daily (except Christmas Eve)
 - Location: Langer Rehm 25, 24149 Kiel-Dietrichsdorf
 - Three business areas: Imbiss, Eventgastronomie, Eis-Spezialitäten
-- Loyalty program with QR code scanning (pending implementation)
+- Seasonal focus: Events May-September
 
 ### Current Implementation Status
 ✅ Menu with 125 items from database
+✅ Menu favorites with filter
 ✅ Home dashboard with quick actions
-✅ Events calendar with mock data
-✅ AI chatbot with knowledge base
-✅ Basic authentication
-❌ Loyalty system (QR codes, points)
+✅ Events calendar with real-time updates
+✅ Event favorites with filter
+✅ AI chatbot with Google Gemini
+✅ Basic authentication with Supabase
+✅ User profiles with favorites
+✅ Chat history persistence
+✅ Angebotskalender with horizontal scroll and filter
+✅ Offers tab in MenuScreen with special pricing
+✅ Weekly rotating offers system (Burger Woche active)
+❌ Photo gallery on HomeScreen
+❌ QR scanner for loyalty points
+❌ Calendar view for events
+❌ Points transaction history UI
 ❌ Google Maps integration
-❌ Push notifications setup
-❌ Photo gallery
+❌ Push notifications
+❌ Caching layer for chatbot
 
 ## Known Issues & Solutions
 
-1. **Chatbot not working**: OpenAI library doesn't work in React Native. Solution implemented: use fetch API directly
-2. **Menu not showing**: Table name is `menu_items` not `speisekarte`, column is `is_available` not `available`
-3. **TypeScript strict mode**: Enabled in tsconfig.json, handle nulls properly
-4. **Supabase RLS**: Ensure public read policy on menu_items table
+1. **OpenAI incompatibility**: Switched to Google Gemini with direct fetch
+2. **Menu table naming**: Use `menu_items` not `speisekarte`
+3. **TypeScript strict mode**: Enabled, handle nulls properly
+4. **Supabase RLS**: Ensure proper policies for all tables
+5. **Chat saving**: Fixed with proper ChatMessageService integration
+6. **ScrollView in TouchableOpacity**: Never nest ScrollView inside any Touchable component - it blocks scroll gestures
 
 ## Testing & Development Notes
 
-- No test framework configured yet
-- Use Expo Go app for mobile testing
-- Mock data available in EventsService.getMockEvents() for testing
-- Development uses real Supabase instance (no local emulator)
+- **Code Quality**: ESLint and Prettier configured
+  - Run linting: `npx eslint src/`
+  - Format code: `npx prettier --write src/`
+- **Testing**: No test framework configured yet
+- **Mobile Testing**: Use Expo Go app
+- **Mock Data**: Available in EventsService.getMockEvents()
+- **Backend**: Development uses real Supabase instance (no local emulator)
+- **Migrations**: SQL migrations in `supabase-updates.sql`
 
 ## German Language Context
 
 The app is primarily for German users. Key German terms used:
 - "Moin" - North German greeting
 - "Speisekarte" - Menu
-- "Angebotskalender" - Special offers calendar
+- "Angebote" - Offers/Specials
+- "Angebotskalender" - Offers calendar
 - "Treuepunkte" - Loyalty points
+- "Punkte sammeln" - Collect points
 - "Veranstaltungen" - Events
+- "Fotogalerie" - Photo gallery
+- "Eindrücke" - Impressions (for gallery)
 
 Default language is German, with English as secondary option in chatbot.
+
+## Upcoming Features (Planned)
+
+### Photo Gallery (HomeScreen Integration)
+- Preview carousel on home page
+- Full gallery with categories
+- Image viewer with zoom/share
+- Supabase Storage integration
+
+### QR Loyalty System (Profile Integration)
+- Scanner accessible from Profile and Home
+- Points validation via Edge Functions
+- Transaction history in profile
+- Secure code redemption
+
+
+### Event Calendar View
+- Toggle between list and calendar
+- Visual date markers
+- Quick preview cards
+- Integrated with favorites
+
+See `INTEGRATED_FEATURES_PLAN.md` for detailed implementation strategy.
+
+## UX Principles
+
+1. **No Navigation Complexity**: Bottom tabs only, features integrated into existing screens
+2. **Progressive Disclosure**: Show previews on home, expand to full views
+3. **Contextual Placement**: Features where users expect them (loyalty in profile, offers with menu)
+4. **Visual First**: Gallery preview attracts on home screen
+5. **Quick Access**: Important actions (QR scan) available from multiple entry points

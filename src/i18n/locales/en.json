@@ -1,0 +1,77 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "search": "Search"
+  },
+  "navigation": {
+    "home": "Home",
+    "menu": "Menu",
+    "events": "Events",
+    "chat": "Chat",
+    "profile": "Profile"
+  },
+  "home": {
+    "welcome": "Welcome to Grill-Partner Maier",
+    "subtitle": "Since 1968 in Kiel",
+    "quickActions": "Quick Actions",
+    "weeklyOffers": "Weekly Offers",
+    "viewMenu": "View Menu",
+    "scanQR": "Scan QR Code"
+  },
+  "menu": {
+    "title": "Our Menu",
+    "categories": "Categories",
+    "all": "All",
+    "favorites": "Favorites",
+    "offers": "Offers",
+    "addToFavorites": "Add to Favorites",
+    "removeFromFavorites": "Remove from Favorites",
+    "price": "Price",
+    "allergens": "Allergens"
+  },
+  "events": {
+    "title": "Events",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "location": "Location",
+    "date": "Date",
+    "offerings": "Offerings",
+    "noEvents": "No events found"
+  },
+  "chat": {
+    "title": "Chat Assistant",
+    "placeholder": "Ask a question...",
+    "send": "Send",
+    "thinking": "Thinking..."
+  },
+  "profile": {
+    "title": "My Profile",
+    "loyaltyPoints": "Loyalty Points",
+    "collectPoints": "Collect Points",
+    "favorites": "My Favorites",
+    "settings": "Settings",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register"
+  },
+  "offers": {
+    "weeklySpecial": "Weekly Special",
+    "burgerWeek": "Burger Week",
+    "doenerWeek": "Döner Week",
+    "schnitzelWeek": "Schnitzel Week",
+    "savings": "You save",
+    "specialPrice": "Special Price"
+  },
+  "loyalty": {
+    "scanCode": "Scan Code",
+    "enterCode": "Enter Code",
+    "pointsEarned": "Points Earned",
+    "pointsRedeemed": "Points Redeemed",
+    "history": "History"
+  }
+}
