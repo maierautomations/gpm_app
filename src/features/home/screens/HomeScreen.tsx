@@ -18,6 +18,7 @@ import MenuService from '../../menu/services/menuService';
 import OffersService, { WeeklyOffer } from '../../offers/services/offersService';
 import { Database } from '../../../services/supabase/database.types';
 import { useNavigation } from '@react-navigation/native';
+import GalleryPreview from '../../gallery/components/GalleryPreview';
 
 type MenuItem = Database['public']['Tables']['menu_items']['Row'];
 
@@ -209,6 +210,9 @@ export default function HomeScreen() {
             <Text style={styles.actionText}>Events</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Gallery Preview */}
+        <GalleryPreview onViewAll={() => navigation.navigate('Gallery')} />
 
         {/* Today's Specials */}
         {specialOffers.length > 0 && (

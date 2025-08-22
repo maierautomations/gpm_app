@@ -13,6 +13,7 @@ import {
   Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Calendar } from 'react-native-calendars';
 import EventsService from '../services/eventsService';
 import { Database } from '../../../services/supabase/database.types';
 import { useUserStore } from '../../../stores/userStore';
@@ -27,6 +28,9 @@ export default function EventsScreen() {
   const [showPast, setShowPast] = useState(false);
   const [favoriteEvents, setFavoriteEvents] = useState<string[]>([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [viewType, setViewType] = useState<'list' | 'calendar'>('list');
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [markedDates, setMarkedDates] = useState<any>({});
   
   const user = useUserStore(state => state.user);
 
@@ -55,19 +59,42 @@ export default function EventsScreen() {
       if (upcomingEvents.length === 0 && pastEventsList.length === 0) {
         const mockEvents = EventsService.getMockEvents();
         setEvents(mockEvents);
+        generateMarkedDates([...mockEvents]);
       } else {
         setEvents(upcomingEvents);
         setPastEvents(pastEventsList);
+        generateMarkedDates([...upcomingEvents, ...pastEventsList]);
       }
     } catch (error) {
       console.error('Error loading events:', error);
       // Use mock data as fallback
       const mockEvents = EventsService.getMockEvents();
       setEvents(mockEvents);
+      generateMarkedDates([...mockEvents]);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
+  };
+
+  const generateMarkedDates = (allEvents: Event[]) => {
+    const marked: any = {};
+    
+    allEvents.forEach(event => {
+      const dateString = event.date?.split('T')[0]; // Get YYYY-MM-DD format
+      if (dateString) {
+        const isPast = new Date(event.date) < new Date();
+        marked[dateString] = {
+          marked: true,
+          dotColor: isPast ? '#999' : '#FF0000',
+          activeOpacity: 0,
+          selectedColor: '#FF0000',
+          events: marked[dateString]?.events ? [...marked[dateString].events, event] : [event]
+        };
+      }
+    });
+    
+    setMarkedDates(marked);
   };
 
   const loadFavoriteEvents = async () => {
@@ -289,7 +316,90 @@ export default function EventsScreen() {
         )}
       </View>
 
-      {displayEvents.length === 0 ? (
+      {/* View Toggle */}
+      <View style={styles.viewToggleContainer}>
+        <TouchableOpacity
+          style={[styles.viewToggle, viewType === 'list' && styles.activeViewToggle]}
+          onPress={() => setViewType('list')}
+        >
+          <Ionicons name="list" size={18} color={viewType === 'list' ? 'white' : '#666'} />
+          <Text style={[styles.viewToggleText, viewType === 'list' && styles.activeViewToggleText]}>
+            Liste
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.viewToggle, viewType === 'calendar' && styles.activeViewToggle]}
+          onPress={() => setViewType('calendar')}
+        >
+          <Ionicons name="calendar" size={18} color={viewType === 'calendar' ? 'white' : '#666'} />
+          <Text style={[styles.viewToggleText, viewType === 'calendar' && styles.activeViewToggleText]}>
+            Kalender
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {viewType === 'calendar' ? (
+        <View style={styles.calendarContainer}>
+          <Calendar
+            markedDates={markedDates}
+            onDayPress={(day) => {
+              setSelectedDate(day.dateString);
+            }}
+            theme={{
+              backgroundColor: '#ffffff',
+              calendarBackground: '#ffffff',
+              textSectionTitleColor: '#b6c1cd',
+              selectedDayBackgroundColor: '#FF0000',
+              selectedDayTextColor: '#ffffff',
+              todayTextColor: '#FF0000',
+              dayTextColor: '#2d4150',
+              textDisabledColor: '#d9e1e8',
+              dotColor: '#FF0000',
+              selectedDotColor: '#ffffff',
+              arrowColor: '#FF0000',
+              monthTextColor: '#2d4150',
+              indicatorColor: '#FF0000',
+              textDayFontWeight: '500',
+              textMonthFontWeight: 'bold',
+              textDayHeaderFontWeight: '500',
+              textDayFontSize: 16,
+              textMonthFontSize: 18,
+              textDayHeaderFontSize: 13
+            }}
+            markingType="dot"
+            enableSwipeMonths={true}
+          />
+          
+          {/* Selected Date Events */}
+          {selectedDate && markedDates[selectedDate]?.events && (
+            <View style={styles.selectedDateContainer}>
+              <Text style={styles.selectedDateTitle}>
+                Events am {new Date(selectedDate).toLocaleDateString('de-DE', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long'
+                })}
+              </Text>
+              <ScrollView style={styles.selectedDateEvents}>
+                {markedDates[selectedDate].events.map((event: Event) => (
+                  <View key={event.id} style={styles.miniEventCard}>
+                    <Text style={styles.miniEventTitle}>{event.title}</Text>
+                    <Text style={styles.miniEventTime}>
+                      {formatTime(event.date)} • {event.location}
+                    </Text>
+                    {event.description && (
+                      <Text style={styles.miniEventDescription} numberOfLines={2}>
+                        {event.description}
+                      </Text>
+                    )}
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+        </View>
+      ) : displayEvents.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="calendar-outline" size={64} color="#ccc" />
           <Text style={styles.emptyText}>
@@ -540,5 +650,91 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 8,
     flex: 1,
+  },
+  viewToggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 8,
+    padding: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  viewToggle: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+  },
+  activeViewToggle: {
+    backgroundColor: '#FF0000',
+  },
+  viewToggleText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 6,
+    fontWeight: '600',
+  },
+  activeViewToggleText: {
+    color: 'white',
+  },
+  calendarContainer: {
+    flex: 1,
+    backgroundColor: 'white',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  selectedDateContainer: {
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    padding: 16,
+    maxHeight: 200,
+  },
+  selectedDateTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+  },
+  selectedDateEvents: {
+    maxHeight: 150,
+  },
+  miniEventCard: {
+    backgroundColor: '#f9f9f9',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF0000',
+  },
+  miniEventTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  miniEventTime: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 6,
+  },
+  miniEventDescription: {
+    fontSize: 12,
+    color: '#999',
+    lineHeight: 16,
   },
 });

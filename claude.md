@@ -34,6 +34,9 @@ This is a React Native Expo app for Grill-Partner Maier, a German restaurant in 
 - **Backend**: Supabase (PostgreSQL, Auth, Realtime, Storage)
 - **Navigation**: React Navigation with bottom tabs (simple, no drawer)
 - **AI Integration**: Google Gemini API (95% cheaper than OpenAI, direct fetch)
+- **Photo Management**: react-native-image-viewing for full-screen viewing
+- **Calendar**: react-native-calendars for event calendar view
+- **File Sharing**: expo-sharing for photo sharing functionality
 - **Code Quality**: ESLint and Prettier configured
 - **Structure**: Feature-based architecture (see FOLDER_STRUCTURE.md for details)
 
@@ -43,6 +46,7 @@ This is a React Native Expo app for Grill-Partner Maier, a German restaurant in 
    - Feature services located in `src/features/[feature]/services/`
    - Core services (Supabase client) in `src/services/supabase/`
    - Each domain has its own service (MenuService, EventsService, ChatService, OffersService, GalleryService, LoyaltyService)
+   - **GalleryService**: Handles photo loading, categorization, and real-time updates
    - Services return typed data from `database.types.ts`
    - Real-time subscriptions handled at service level
 
@@ -155,6 +159,48 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 - `type`: 'earned' | 'redeemed'
 - `points`: amount
 
+## Photo Gallery Management
+
+### Adding Photos to the Gallery
+
+Photos are managed through the `gallery_photos` table in Supabase. You can add new photos using:
+
+#### Method 1: Supabase Dashboard (Recommended)
+1. Navigate to **Table Editor** → `gallery_photos` in your Supabase dashboard
+2. Click **Insert** → **Insert row**
+3. Fill in the required fields:
+   - `category`: Choose 'restaurant', 'events', or 'eis'
+   - `title`: Photo title (optional but recommended)
+   - `description`: Brief description (optional)
+   - `image_url`: Direct URL to the full-size image (required)
+   - `thumbnail_url`: URL to thumbnail (optional, uses image_url if empty)
+   - `is_featured`: Set to `true` for home preview (limit to 6-8 featured photos)
+   - `display_order`: Number for sorting (lower numbers appear first)
+
+#### Method 2: SQL Insert
+```sql
+INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_url, is_featured, display_order) VALUES
+('restaurant', 'Gemütlicher Innenbereich', 'Warme Atmosphäre für Familie und Freunde', 'https://your-cdn.com/interior.jpg', 'https://your-cdn.com/interior-thumb.jpg', true, 1),
+('events', 'Kieler Woche 2024', 'Unser Stand bei der Kieler Woche', 'https://your-cdn.com/kieler-woche.jpg', null, true, 2);
+```
+
+### Image Requirements
+- **Format**: JPG, PNG (JPG recommended for photos)
+- **Size**: Original images up to 2MB, thumbnails under 200KB
+- **Dimensions**: Originals 1200x800px+, thumbnails 400x300px
+- **Hosting**: Use Supabase Storage, Cloudinary, or reliable CDN
+
+### Photo Categories
+- **restaurant**: Interior, exterior, staff, food preparation
+- **events**: Seasonal events, catering setups, festivals
+- **eis**: Ice cream varieties, ice cream counter, dessert displays
+
+### Performance Tips
+- Always provide thumbnail_url for better loading performance
+- Keep featured photos to 6-8 maximum for optimal home preview
+- Use progressive JPEG format for faster loading
+- Consider WebP format for modern browsers (future enhancement)
+
 ## Key Implementation Details
 
 ### Menu System
@@ -182,15 +228,20 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 ### Event System
 - Favorites functionality (favorite_events in profiles)
 - Real-time updates via subscriptions
-- **Calendar View**: Toggle between list and calendar views
-- Past/upcoming event separation
-- Quick preview on calendar date selection
+- **Calendar View**: Toggle between list and calendar views with visual date markers
+- **Date Selection**: Click on calendar dates to see events for that day
+- **Event Preview**: Mini cards showing event details when date is selected
+- Past/upcoming event separation with visual styling
+- **View Persistence**: Calendar/list preference maintained during session
+- **Event Markers**: Dots on calendar dates indicate events (red for upcoming, gray for past)
 
 ### Home Screen Hub
-- **Gallery Preview**: Horizontal scroll of featured photos (planned)
-- **Quick Actions**: Including QR scanner access (planned)
+- **Gallery Preview**: Horizontal scroll of featured photos with category badges
+- **Quick Actions**: Restaurant call, directions, menu, events access
 - **Weekly Offers Banner**: Horizontal scroll showing all discounted items
 - **Touch-optimized**: ScrollView separated from TouchableWithoutFeedback
+- **Visual Appeal**: Restaurant header image with overlay text
+- **Status Indicators**: Real-time open/closed status with colored badges
 - Central access point for key features
 
 ### Profile & Loyalty
@@ -200,10 +251,14 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 - Favorites management (menu items & events)
 
 ### Photo Gallery
-- **Accessed from HomeScreen**: Preview → Full gallery
-- Categories: Restaurant, Events, Eis-Spezialitäten
-- Full-screen viewer with zoom/share
-- Lazy loading and caching
+- **Gallery Preview on HomeScreen**: Horizontal scroll of featured photos
+- **Full Gallery Screen**: Accessed via modal navigation from HomeScreen
+- **Categories**: Restaurant, Events, Eis-Spezialitäten with tab switching
+- **Photo Viewer**: Full-screen with pinch-to-zoom, swipe navigation, and share functionality
+- **Real-time Updates**: Live sync with database changes
+- **Performance**: Thumbnail loading with lazy loading optimization
+- **Database Integration**: Uses `gallery_photos` table with category filtering
+- **Featured System**: Photos marked as `is_featured` appear in home preview
 
 ### Restaurant-Specific Features
 - Opening hours: 11:00-22:00 daily (except Christmas Eve)
@@ -224,9 +279,11 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 ✅ Angebotskalender with horizontal scroll and filter
 ✅ Offers tab in MenuScreen with special pricing
 ✅ Weekly rotating offers system (Burger Woche active)
-❌ Photo gallery on HomeScreen
+✅ Photo gallery with preview on HomeScreen
+✅ Full gallery screen with categories
+✅ Photo viewer with zoom and share functionality
+✅ Calendar view for events with date selection
 ❌ QR scanner for loyalty points
-❌ Calendar view for events
 ❌ Points transaction history UI
 ❌ Google Maps integration
 ❌ Push notifications

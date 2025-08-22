@@ -9,6 +9,7 @@ import MenuScreen from '../../features/menu/screens/MenuScreen';
 import EventsScreen from '../../features/events/screens/EventsScreen';
 import ChatbotScreen from '../../features/chat/screens/ChatbotScreen';
 import ProfileScreen from '../../features/profile/screens/ProfileScreen';
+import GalleryScreen from '../../features/gallery/screens/GalleryScreen';
 
 // Rest of the file is unchanged
 
@@ -46,6 +47,14 @@ export default function AppNavigator() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Main">
         <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
+        <Stack.Screen 
+          name="Gallery" 
+          component={GalleryScreen} 
+          options={{ 
+            headerShown: false,
+            presentation: 'modal'
+          }} 
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
