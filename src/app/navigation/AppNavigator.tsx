@@ -10,6 +10,10 @@ import EventsScreen from '../../features/events/screens/EventsScreen';
 import ChatbotScreen from '../../features/chat/screens/ChatbotScreen';
 import ProfileScreen from '../../features/profile/screens/ProfileScreen';
 import GalleryScreen from '../../features/gallery/screens/GalleryScreen';
+import AboutUsScreen from '../../features/settings/screens/AboutUsScreen';
+import HelpSupportScreen from '../../features/settings/screens/HelpSupportScreen';
+import LanguageSettingsScreen from '../../features/settings/screens/LanguageSettingsScreen';
+import NotificationSettingsScreen from '../../features/settings/screens/NotificationSettingsScreen';
 
 // Rest of the file is unchanged
 
@@ -54,6 +58,26 @@ export default function AppNavigator() {
             headerShown: false,
             presentation: 'modal'
           }} 
+        />
+        <Stack.Screen 
+          name="AboutUs" 
+          component={AboutUsScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="HelpSupport" 
+          component={HelpSupportScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="LanguageSettings" 
+          component={LanguageSettingsScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="NotificationSettings" 
+          component={NotificationSettingsScreen} 
+          options={{ headerShown: false }} 
         />
       </Stack.Navigator>
     </NavigationContainer>

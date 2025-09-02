@@ -168,7 +168,7 @@ export default function HomeScreen() {
                       <Text style={styles.offerHighlightBadge}>{item.highlight_badge}</Text>
                     )}
                     <Text style={styles.offerItemName} numberOfLines={2}>
-                      {item.menu_item.name}
+                      {OffersService.getItemDisplayName(item)}
                     </Text>
                     <View style={styles.offerPriceContainer}>
                       <Text style={styles.offerOriginalPrice}>

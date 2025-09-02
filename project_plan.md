@@ -48,7 +48,7 @@ Mobile app for Grill-Partner Maier restaurant in Kiel, Germany. A React Native E
 
 #### 1. Environment Setup
 
-- [ ] Create `.env.local` with credentials:
+- [x] Create `.env.local` with credentials:
   ```
   EXPO_PUBLIC_SUPABASE_URL=
   EXPO_PUBLIC_SUPABASE_ANON_KEY=
@@ -119,13 +119,13 @@ src/
 
 #### Features to Implement
 
-- [ ] Menu service with Supabase queries
-- [ ] Category filtering (Imbiss, Events, Eis)
-- [ ] Item detail view with images
-- [ ] Allergen information display
-- [ ] Favorites functionality (logged-in users)
+- [x] Menu service with Supabase queries
+- [x] Category filtering (Imbiss, Events, Eis)
+- [x] Item detail view with images
+- [x] Allergen information display
+- [x] Favorites functionality (logged-in users)
 - [ ] Real-time availability updates
-- [ ] Search functionality
+- [x] Search functionality
 
 #### Technical Implementation
 
@@ -142,12 +142,12 @@ src/
 
 #### Features to Implement
 
-- [ ] Chat UI with message history
-- [ ] Streaming responses using Vercel AI SDK
-- [ ] Language detection (German/English)
+- [x] Chat UI with message history
+- [x] Streaming responses using Vercel AI SDK
+- [x] Language detection (German/English)
 - [ ] Context about restaurant (hours, menu, location)
-- [ ] Chat history persistence in Supabase
-- [ ] Quick action buttons (hours, directions, menu)
+- [x] Chat history persistence in Supabase
+- [x] Quick action buttons (hours, directions, menu)
 
 #### Technical Stack
 
@@ -164,19 +164,20 @@ src/
 
 #### Events Calendar
 
-- [ ] Events list/calendar view
-- [ ] Event details (date, location, offerings)
+- [x] Events list/calendar view
+- [x] Event details (date, location, offerings)
 - [ ] Push notifications for events
 - [ ] Filter by month/type
+- [ ] Past/upcoming event separation with visual styling (past events are greyed out but filter not working, stays at upcoming events)
 - [ ] Integration with device calendar
 
 #### Location Features
 
 - [ ] Google Maps integration
-- [ ] Parking information
-- [ ] One-tap calling
-- [ ] Hours display
-- [ ] Directions button
+- [x] Parking information
+- [x] One-tap calling
+- [x] Hours display
+- [x] Directions button
 
 ### Phase 5: Authentication & Profile (Days 14-15)
 
@@ -184,38 +185,13 @@ src/
 
 #### Features
 
-- [ ] Login/Signup UI
-- [ ] Email verification flow
+- [x] Login/Signup UI
+- [x] Email verification flow
 - [ ] Profile management
 - [ ] Password reset
-- [ ] Favorites view
-- [ ] Order history (future)
-
-### Phase 6: Loyalty Program (Days 16-18)
-
-**Goal**: Points-based reward system
-
-#### Implementation
-
-- [ ] QR code scanner (expo-barcode-scanner)
-- [ ] Points tracking table
-- [ ] Rewards catalog
-- [ ] Points history
-- [ ] Redemption flow
-- [ ] Event-specific bonuses
-
-#### Database Schema
-
-```sql
-loyalty_transactions (
-  id uuid primary key,
-  user_id uuid references profiles,
-  points integer,
-  type text, -- 'earned' | 'redeemed'
-  description text,
-  created_at timestamp
-)
-```
+- [x] Favorites view
+- [ ] Settings (Notifications, Language, Help & Support, Über uns - all not clickable yet)
+- [ ] Profile Picture management
 
 ### Phase 7: UI/UX Polish (Days 19-21)
 
@@ -321,19 +297,44 @@ loyalty_transactions (
 
 - **Week 1**: Foundation + Menu + Auth
 - **Week 2**: Chatbot + Events
-- **Week 3**: Loyalty + Location
+- **Week 3**: Location
 - **Week 4**: Polish + Testing + Deployment
 
 ## 💡 Future Enhancements (Post-Launch)
 
 - Voice mode for chatbot
-- Online ordering system
 - Table reservations
 - Admin dashboard
 - Multi-language support (Polish, Turkish)
 - Integration with POS system
 - Customer feedback system
 - Social media integration
+
+## Loyalty Program (Postpones until after MVP deployment)
+
+**Goal**: Points-based reward system
+
+#### Implementation
+
+- [ ] QR code scanner (expo-barcode-scanner)
+- [ ] Points tracking table
+- [ ] Rewards catalog
+- [ ] Points history
+- [ ] Redemption flow
+- [ ] Event-specific bonuses
+
+#### Database Schema
+
+```sql
+loyalty_transactions (
+  id uuid primary key,
+  user_id uuid references profiles,
+  points integer,
+  type text, -- 'earned' | 'redeemed'
+  description text,
+  created_at timestamp
+)
+```
 
 ---
 

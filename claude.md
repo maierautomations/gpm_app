@@ -32,11 +32,12 @@ This is a React Native Expo app for Grill-Partner Maier, a German restaurant in 
 - **Frontend**: React Native 0.79.5 with Expo SDK 53
 - **State Management**: Zustand for global state (user authentication)
 - **Backend**: Supabase (PostgreSQL, Auth, Realtime, Storage)
-- **Navigation**: React Navigation with bottom tabs (simple, no drawer)
+- **Navigation**: React Navigation with Stack + Bottom Tabs
 - **AI Integration**: Google Gemini API (95% cheaper than OpenAI, direct fetch)
 - **Photo Management**: react-native-image-viewing for full-screen viewing
 - **Calendar**: react-native-calendars for event calendar view
 - **File Sharing**: expo-sharing for photo sharing functionality
+- **User Preferences**: @react-native-async-storage/async-storage for settings
 - **Code Quality**: ESLint and Prettier configured
 - **Structure**: Feature-based architecture (see FOLDER_STRUCTURE.md for details)
 
@@ -75,7 +76,15 @@ The app uses a feature-based architecture for better scalability and maintainabi
 ```
 src/
 ├── app/              # App configuration (App.tsx, navigation)
-├── features/         # Feature modules (menu, events, chat, etc.)
+├── features/         # Feature modules (menu, events, chat, settings, etc.)
+│   ├── menu/         # Menu system with offers integration
+│   ├── events/       # Events calendar with favorites
+│   ├── chat/         # AI chatbot with Gemini
+│   ├── home/         # Dashboard with quick actions
+│   ├── profile/      # User profile and loyalty
+│   ├── offers/       # Weekly offers system (OffersService)
+│   ├── gallery/      # Photo gallery with categories
+│   ├── settings/     # User preferences and app settings
 │   └── [feature]/
 │       ├── components/   # Feature-specific components
 │       ├── screens/      # Screen components
@@ -86,7 +95,7 @@ src/
 ├── services/         # Core services (Supabase)
 ├── stores/           # Global state (Zustand)
 ├── theme/            # Design system (colors, typography, spacing)
-├── i18n/             # Internationalization
+├── i18n/             # Internationalization (de.json, en.json)
 └── types/            # Global TypeScript types
 ```
 
@@ -128,20 +137,23 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 - `language`: 'de' | 'en'
 - `user_id`, `message`, `response`
 
-**angebotskalender_weeks** (7 rotating weekly themes)
+**angebotskalender_weeks** (8 rotating weekly themes)
 - `id`: uuid (primary key)
-- `week_number`: 1-7 (rotation cycle)
-- `week_theme`: string (e.g., "Burger Woche", "Döner Woche")
+- `week_number`: 1-8 (rotation cycle)
+- `week_theme`: string (e.g., "Burger Woche", "Türkische Woche", "Hähnchen Woche")
 - `is_active`: boolean (current active week)
-- `start_date`, `end_date`: optional date tracking
+- `start_date`, `end_date`: date tracking for rotation
 
-**angebotskalender_items** (specific discounted items)
+**angebotskalender_items** (hybrid offer system - 50+ items)
 - `week_id`: references angebotskalender_weeks
-- `menu_item_id`: references menu_items
-- `special_price`: fixed discount price (not percentage)
-- `highlight_badge`: optional badge (e.g., "Premium", "XXL")
+- `menu_item_id`: nullable, references menu_items (for existing menu items)
+- `custom_name`: nullable, custom item name (for combo offers)
+- `custom_description`: nullable, description for custom items
+- `base_price`: nullable, original price for custom items
+- `special_price`: discounted price
+- `highlight_badge`: optional badge (e.g., "Premium", "XXL", "Sparmenü")
 
-**gallery_photos** (photo gallery - database ready, UI pending)
+**gallery_photos** (photo gallery - ✅ FULLY IMPLEMENTED)
 - `category`: 'restaurant' | 'events' | 'eis'
 - `image_url`, `thumbnail_url`
 - `is_featured`: for home preview
@@ -158,6 +170,36 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 - `code_id`: which code was used
 - `type`: 'earned' | 'redeemed'
 - `points`: amount
+
+## Settings & User Preferences - ✅ FULLY IMPLEMENTED
+
+The app includes a comprehensive settings system with proper navigation and data persistence:
+
+### Settings Screens
+- **NotificationSettings**: Toggle switches for weekly offers, events, loyalty points, app updates
+- **LanguageSettings**: German/English selection (ready for full i18n integration)
+- **HelpSupport**: FAQ section, contact options, feature explanations
+- **AboutUs**: Restaurant history, values, contact info, app version
+
+### Data Persistence
+- **AsyncStorage Integration**: All user preferences stored locally
+- **Settings Navigation**: Stack navigation from ProfileScreen
+- **Consistent UI**: All screens follow app design patterns
+- **Back Navigation**: Custom headers with back buttons
+
+### Navigation Structure
+```
+ProfileScreen (Tab)
+├─ NotificationSettings (Stack)
+├─ LanguageSettings (Stack)
+├─ HelpSupport (Stack)
+└─ AboutUs (Stack)
+```
+
+### User Preference Storage
+- Notification toggles saved to AsyncStorage key: `notification_settings`
+- Language preference saved to AsyncStorage key: `app_language`
+- Settings load on screen mount and save immediately on change
 
 ## Photo Gallery Management
 
@@ -211,12 +253,16 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 - Special price display with strikethrough and savings badge
 - Orange theme (#FF6B00) for offer items
 
-### Angebotskalender (Weekly Offers)
-- **7 rotating weekly themes**: Burger, Döner, Boxen, Schnitzel, Gyros, Wurst, Croque
-- **Fixed discount prices**: Not percentages, specific prices per item
-- **Horizontal scrolling**: All 8 offer items visible on HomeScreen
-- **Smart filtering**: Dedicated offers filter in MenuScreen
-- **Visual indicators**: "ANGEBOT" badges, strikethrough pricing, savings amount
+### Angebotskalender (Weekly Offers) - ✅ FULLY IMPLEMENTED
+- **8 rotating weekly themes**: Burger, Türkische, Boxen, Schweine, Fleischteller, Wurst, Croque, Hähnchen
+- **Hybrid System**: Both linked menu items AND custom combo offers
+- **Manual Rotation**: SQL functions for week switching (rotate_to_next_week(), set_active_week())
+- **Automatic Rotation**: update_active_week() function based on ISO calendar weeks
+- **50+ Special Items**: Mix of existing menu items and custom combos (e.g., "Schaschlik mit Pommes")
+- **Smart Display**: OffersService handles both types with getItemDisplayName()
+- **HomeScreen Integration**: Horizontal scroll showing all current week offers
+- **MenuScreen Filter**: Shows only linked menu items (custom combos don't appear here - by design)
+- **Visual Indicators**: "ANGEBOT" badges, strikethrough pricing, savings calculations
 
 ### AI Chatbot
 - **Using Google Gemini Flash** (not OpenAI)
@@ -267,36 +313,51 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 - Seasonal focus: Events May-September
 
 ### Current Implementation Status
-✅ Menu with 125 items from database
-✅ Menu favorites with filter
-✅ Home dashboard with quick actions
-✅ Events calendar with real-time updates
-✅ Event favorites with filter
-✅ AI chatbot with Google Gemini
-✅ Basic authentication with Supabase
-✅ User profiles with favorites
-✅ Chat history persistence
-✅ Angebotskalender with horizontal scroll and filter
-✅ Offers tab in MenuScreen with special pricing
-✅ Weekly rotating offers system (Burger Woche active)
-✅ Photo gallery with preview on HomeScreen
-✅ Full gallery screen with categories
-✅ Photo viewer with zoom and share functionality
-✅ Calendar view for events with date selection
-❌ QR scanner for loyalty points
-❌ Points transaction history UI
-❌ Google Maps integration
-❌ Push notifications
-❌ Caching layer for chatbot
+
+#### ✅ FULLY IMPLEMENTED FEATURES
+- **Menu System**: 125+ items with categories, search, favorites filter
+- **Weekly Offers System**: 8 rotating themes, 50+ items (hybrid linked/custom)
+- **Events Calendar**: List/calendar views, favorites, date selection
+- **AI Chatbot**: Google Gemini integration, bilingual, chat history
+- **Photo Gallery**: 3 categories, full-screen viewer, share functionality
+- **User Settings**: 4 settings screens with AsyncStorage persistence
+- **Authentication**: Supabase Auth with profile management
+- **Home Dashboard**: Quick actions, offers preview, gallery preview
+- **Real-time Updates**: Supabase subscriptions for live data
+
+#### ✅ CORE SERVICES IMPLEMENTED
+- **OffersService**: Handles both linked menu items and custom combos
+- **MenuService**: Menu loading, categories, real-time updates
+- **EventsService**: Event management with favorites
+- **ChatService**: Message persistence and Gemini API integration
+- **GalleryService**: Photo categorization and featured system
+- **AuthService**: User authentication and profile management
+
+#### ✅ DATABASE FULLY CONFIGURED
+- **Complete Schema**: 10 tables with proper relationships
+- **Weekly Rotation**: SQL functions for manual/automatic switching
+- **Hybrid Offers**: Both menu items and custom combo support
+- **User Data**: Profiles, favorites, chat history, loyalty points
+
+#### ❌ PENDING FEATURES
+- QR scanner for loyalty points
+- Points transaction history UI
+- Push notifications system
+- Google Maps integration
+- Caching layer for chatbot
+- Full i18n implementation (translations ready)
 
 ## Known Issues & Solutions
 
-1. **OpenAI incompatibility**: Switched to Google Gemini with direct fetch
-2. **Menu table naming**: Use `menu_items` not `speisekarte`
-3. **TypeScript strict mode**: Enabled, handle nulls properly
-4. **Supabase RLS**: Ensure proper policies for all tables
-5. **Chat saving**: Fixed with proper ChatMessageService integration
-6. **ScrollView in TouchableOpacity**: Never nest ScrollView inside any Touchable component - it blocks scroll gestures
+1. **OpenAI incompatibility**: ✅ Fixed - Switched to Google Gemini with direct fetch
+2. **Menu table naming**: ✅ Fixed - Use `menu_items` not `speisekarte`
+3. **TypeScript strict mode**: ✅ Configured - Handle nulls properly
+4. **Supabase RLS**: ✅ Configured - Proper policies for all tables
+5. **Chat saving**: ✅ Fixed - ChatMessageService integration working
+6. **ScrollView in TouchableOpacity**: ✅ Avoided - Never nest ScrollView inside Touchable components
+7. **Settings Navigation**: ✅ Fixed - All settings screens now have working navigation
+8. **Custom Offers Display**: ✅ Fixed - OffersService handles both linked and custom items
+9. **Weekly Rotation**: ✅ Implemented - SQL functions for week switching
 
 ## Testing & Development Notes
 
@@ -307,7 +368,39 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 - **Mobile Testing**: Use Expo Go app
 - **Mock Data**: Available in EventsService.getMockEvents()
 - **Backend**: Development uses real Supabase instance (no local emulator)
-- **Migrations**: SQL migrations in `supabase-updates.sql`
+- **SQL Files**: 
+  - `supabase-weekly-rotation.sql` - Weekly rotation functions
+  - `supabase-combo-offers-inserts.sql` - Custom combo items
+  - `supabase-migration-extend-offers.sql` - Table extensions
+
+## Weekly Offers Management
+
+### Manual Week Rotation
+Use these SQL commands in Supabase SQL Editor:
+
+```sql
+-- Rotate to next week in sequence (1→2→3...→8→1)
+SELECT rotate_to_next_week();
+
+-- Set specific week (1-8)
+SELECT set_active_week(3);  -- Switch to Boxen Woche
+
+-- View rotation schedule
+SELECT * FROM get_rotation_schedule();
+
+-- Check current active week
+SELECT week_number, week_theme FROM angebotskalender_weeks WHERE is_active = true;
+```
+
+### Week Themes (1-8)
+1. **Burger Woche**: Mix of linked items + custom "Riesen Hot Dog"
+2. **Türkische Woche**: All linked menu items
+3. **Boxen Woche**: Mix with normal + XXL sizes
+4. **Schweine Woche**: Schnitzel + custom "Schaschlik mit Pommes"
+5. **Fleischteller Woche**: Custom "Balkanteller" + "Kombiteller"
+6. **Wurst Woche**: Mix with custom combo plates
+7. **Croque Woche**: Street-named croques + custom combo
+8. **Hähnchen Woche**: All custom items (nuggets with sides)
 
 ## German Language Context
 
@@ -324,28 +417,38 @@ The app is primarily for German users. Key German terms used:
 
 Default language is German, with English as secondary option in chatbot.
 
-## Upcoming Features (Planned)
+## Next Development Priorities
 
-### Photo Gallery (HomeScreen Integration)
-- Preview carousel on home page
-- Full gallery with categories
-- Image viewer with zoom/share
-- Supabase Storage integration
+### 1. QR Loyalty Scanner (High Priority)
+- **Scanner Screen**: Use expo-camera or expo-barcode-scanner
+- **Points Validation**: Edge Function to validate codes and award points
+- **Transaction History**: UI screen showing earned/redeemed points
+- **Navigation**: Accessible from Profile and HomeScreen quick actions
+- **Database Ready**: loyalty_codes and loyalty_transactions tables exist
 
-### QR Loyalty System (Profile Integration)
-- Scanner accessible from Profile and Home
-- Points validation via Edge Functions
-- Transaction history in profile
-- Secure code redemption
+### 2. Push Notifications (Medium Priority)
+- **expo-notifications**: Install and configure
+- **Permission Handling**: Request permissions on first launch
+- **Supabase Integration**: Trigger notifications for weekly offers, events
+- **Settings Integration**: Use existing NotificationSettings toggles
+- **Background Sync**: Update offers and events automatically
 
+### 3. Google Maps Integration (Medium Priority)
+- **Restaurant Location**: Interactive map with directions
+- **Event Locations**: Show different event venues on map
+- **Contact Integration**: Enhanced "Route" button functionality
 
-### Event Calendar View
-- Toggle between list and calendar
-- Visual date markers
-- Quick preview cards
-- Integrated with favorites
+### 4. Performance Optimizations (Low Priority)
+- **Image Caching**: Optimize gallery photo loading
+- **Chat Caching**: Cache common chatbot responses
+- **Offline Support**: Basic offline functionality for menu/favorites
+- **Bundle Optimization**: Code splitting for features
 
-See `INTEGRATED_FEATURES_PLAN.md` for detailed implementation strategy.
+### 5. Full i18n Implementation (Future)
+- **react-native-localize**: Device language detection
+- **i18n-js**: Translation system integration
+- **Content Translation**: Translate all static content
+- **Dynamic Content**: Menu items and event descriptions in both languages
 
 ## UX Principles
 

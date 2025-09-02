@@ -12,11 +12,14 @@ export interface WeeklyOffer {
 
 export interface OfferItem {
   id: string;
-  menu_item: MenuItem;
+  menu_item?: MenuItem; // Optional for custom items
+  custom_name?: string; // For combo items not in menu_items
+  custom_description?: string; // Description for custom items
   special_price: string;
   original_price: string;
   savings: string;
   highlight_badge?: string;
+  is_custom: boolean; // Flag to distinguish item types
 }
 
 export class OffersService {
@@ -43,14 +46,22 @@ export class OffersService {
       }
 
       // Transform the data for easier consumption
-      const items: OfferItem[] = data.angebotskalender_items?.map((item: any) => ({
-        id: item.id,
-        menu_item: item.menu_item,
-        special_price: item.special_price,
-        original_price: item.menu_item?.price || '0',
-        savings: this.calculateSavings(item.menu_item?.price, item.special_price),
-        highlight_badge: item.highlight_badge
-      })) || [];
+      const items: OfferItem[] = data.angebotskalender_items?.map((item: any) => {
+        const isCustom = !item.menu_item_id || !item.menu_item;
+        const originalPrice = isCustom ? item.base_price : item.menu_item?.price;
+        
+        return {
+          id: item.id,
+          menu_item: item.menu_item,
+          custom_name: item.custom_name,
+          custom_description: item.custom_description,
+          special_price: item.special_price,
+          original_price: originalPrice || '0',
+          savings: this.calculateSavings(originalPrice, item.special_price),
+          highlight_badge: item.highlight_badge,
+          is_custom: isCustom
+        };
+      }) || [];
 
       return {
         week: {
@@ -95,14 +106,22 @@ export class OffersService {
       }
 
       // Transform the data
-      const items: OfferItem[] = data.angebotskalender_items?.map((item: any) => ({
-        id: item.id,
-        menu_item: item.menu_item,
-        special_price: item.special_price,
-        original_price: item.menu_item?.price || '0',
-        savings: this.calculateSavings(item.menu_item?.price, item.special_price),
-        highlight_badge: item.highlight_badge
-      })) || [];
+      const items: OfferItem[] = data.angebotskalender_items?.map((item: any) => {
+        const isCustom = !item.menu_item_id || !item.menu_item;
+        const originalPrice = isCustom ? item.base_price : item.menu_item?.price;
+        
+        return {
+          id: item.id,
+          menu_item: item.menu_item,
+          custom_name: item.custom_name,
+          custom_description: item.custom_description,
+          special_price: item.special_price,
+          original_price: originalPrice || '0',
+          savings: this.calculateSavings(originalPrice, item.special_price),
+          highlight_badge: item.highlight_badge,
+          is_custom: isCustom
+        };
+      }) || [];
 
       return {
         week: {
@@ -152,6 +171,20 @@ export class OffersService {
   static formatPrice(price: string | number): string {
     const numPrice = typeof price === 'string' ? parseFloat(price) : price;
     return `€${numPrice.toFixed(2)}`;
+  }
+
+  /**
+   * Get display name for an offer item
+   */
+  static getItemDisplayName(item: OfferItem): string {
+    return item.is_custom ? (item.custom_name || 'Special Offer') : (item.menu_item?.name || 'Unknown Item');
+  }
+
+  /**
+   * Get display description for an offer item
+   */
+  static getItemDisplayDescription(item: OfferItem): string | undefined {
+    return item.is_custom ? item.custom_description : item.menu_item?.description;
   }
 
   /**

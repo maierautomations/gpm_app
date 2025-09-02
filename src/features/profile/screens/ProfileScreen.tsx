@@ -495,26 +495,38 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Einstellungen</Text>
           
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity 
+            style={styles.settingItem}
+            onPress={() => navigation.navigate('NotificationSettings')}
+          >
             <Ionicons name="notifications-outline" size={24} color="#666" />
             <Text style={styles.settingText}>Benachrichtigungen</Text>
             <Ionicons name="chevron-forward" size={20} color="#999" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity 
+            style={styles.settingItem}
+            onPress={() => navigation.navigate('LanguageSettings')}
+          >
             <Ionicons name="language-outline" size={24} color="#666" />
             <Text style={styles.settingText}>Sprache</Text>
             <Text style={styles.settingValue}>Deutsch</Text>
             <Ionicons name="chevron-forward" size={20} color="#999" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity 
+            style={styles.settingItem}
+            onPress={() => navigation.navigate('HelpSupport')}
+          >
             <Ionicons name="help-circle-outline" size={24} color="#666" />
             <Text style={styles.settingText}>Hilfe & Support</Text>
             <Ionicons name="chevron-forward" size={20} color="#999" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity 
+            style={styles.settingItem}
+            onPress={() => navigation.navigate('AboutUs')}
+          >
             <Ionicons name="information-circle-outline" size={24} color="#666" />
             <Text style={styles.settingText}>Über uns</Text>
             <Ionicons name="chevron-forward" size={20} color="#999" />
