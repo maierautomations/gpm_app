@@ -61,7 +61,7 @@ The app will be built using React Native with Expo for cross-platform (iOS/Andro
    No ordering—just browsing.
    AI Chatbot (German/English):
    Vercel AI SDK with OpenAI (gpt-4o-mini for cost-efficiency).
-   Handles questions on hours (11:00-22:00, 364 days/year), menu, directions, allergens.
+   Handles questions on hours (11:00-21:00, 364 days/year), menu, directions, allergens.
    Streaming responses for natural feel.
    Bilingual: Detect language from input or device settings.
    Chat history saved in Supabase for persistence.

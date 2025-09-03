@@ -12,7 +12,7 @@ const RESTAURANT_INFO = {
   established: 1968,
   location: 'Langer Rehm 25, 24149 Kiel-Dietrichsdorf',
   phone: '+49 431 123456',
-  hours: '11:00-22:00 Uhr (täglich außer Heiligabend)',
+  hours: '11:00-21:00 Uhr (täglich außer Heiligabend)',
   parking: 'Kostenlose Parkplätze direkt vor dem Restaurant',
   specialties: [
     'Traditioneller deutscher Imbiss',
@@ -55,7 +55,7 @@ The restaurant has been a family business since 1968.
 IMPORTANT INFORMATION:
 - Restaurant: ${RESTAURANT_INFO.name}
 - Address: ${RESTAURANT_INFO.location}
-- Opening hours: 11:00 AM - 10:00 PM (daily except Christmas Eve)
+- Opening hours: 11:00 AM - 09:00 PM (daily except Christmas Eve)
 - Parking: Free parking directly in front of the restaurant
 - Specialties: Traditional German fast food, event catering (May-September), ice cream specialties
 

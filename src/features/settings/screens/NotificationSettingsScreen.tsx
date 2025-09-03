@@ -210,12 +210,12 @@ export default function NotificationSettingsScreen({ navigation }: { navigation:
           <Text style={styles.sectionTitle}>Benachrichtigungszeiten</Text>
           <Text style={styles.infoText}>
             Benachrichtigungen werden nur während der Öffnungszeiten gesendet 
-            (11:00 - 22:00 Uhr), um Sie nicht zu stören.
+            (11:00 - 21:00 Uhr), um Sie nicht zu stören.
           </Text>
           
           <View style={styles.timeInfo}>
             <Ionicons name="time" size={16} color="#666" />
-            <Text style={styles.timeText}>Montag - Sonntag: 11:00 - 22:00 Uhr</Text>
+            <Text style={styles.timeText}>Montag - Sonntag: 11:00 - 21:00 Uhr</Text>
           </View>
         </View>
 

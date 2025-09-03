@@ -39,8 +39,8 @@ export default function HomeScreen() {
     // Closed on Christmas Eve (Dec 24)
     if (now.getMonth() === 11 && now.getDate() === 24) return false;
     
-    // Open 11:00 - 22:00
-    return hours >= 11 && hours < 22;
+    // Open 11:00 - 21:00
+    return hours >= 11 && hours < 21;
   };
 
   useEffect(() => {
@@ -252,7 +252,7 @@ export default function HomeScreen() {
             <Ionicons name="time-outline" size={24} color="#FF0000" />
             <View style={styles.infoContent}>
               <Text style={styles.infoTitle}>Öffnungszeiten</Text>
-              <Text style={styles.infoText}>Täglich 11:00 - 22:00 Uhr</Text>
+              <Text style={styles.infoText}>Täglich 11:00 - 21:00 Uhr</Text>
               <Text style={styles.infoSubtext}>364 Tage im Jahr (außer Heiligabend)</Text>
             </View>
           </View>

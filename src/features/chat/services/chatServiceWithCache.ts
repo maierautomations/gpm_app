@@ -29,7 +29,7 @@ const RESTAURANT_INFO = {
   established: 1968,
   location: 'Langer Rehm 25, 24149 Kiel-Dietrichsdorf',
   phone: '+49 431 123456',
-  hours: '11:00-22:00 Uhr (täglich außer Heiligabend)',
+  hours: '11:00-21:00 Uhr (täglich außer Heiligabend)',
   parking: 'Kostenlose Parkplätze direkt vor dem Restaurant',
   specialties: [
     'Traditioneller deutscher Imbiss',
@@ -49,7 +49,7 @@ const RESTAURANT_INFO = {
 // Predefined responses for common questions
 const CACHED_RESPONSES = {
   de: {
-    hours: `Unsere Öffnungszeiten sind täglich von 11:00 bis 22:00 Uhr, außer an Heiligabend. Wir freuen uns auf Ihren Besuch!`,
+    hours: `Unsere Öffnungszeiten sind täglich von 11:00 bis 21:00 Uhr, außer an Heiligabend. Wir freuen uns auf Ihren Besuch!`,
     location: `Sie finden uns in der Langer Rehm 25, 24149 Kiel-Dietrichsdorf. Kostenlose Parkplätze sind direkt vor dem Restaurant verfügbar.`,
     parking: `Wir haben kostenlose Parkplätze direkt vor unserem Restaurant. Sie können bequem direkt vor der Tür parken.`,
     phone: `Sie erreichen uns telefonisch unter +49 431 123456. Wir freuen uns auf Ihren Anruf!`,
@@ -58,7 +58,7 @@ const CACHED_RESPONSES = {
     allergens: `Allergeninformationen finden Sie bei jedem Gericht im Menü-Tab. Wir beraten Sie auch gerne persönlich zu Allergenen und Unverträglichkeiten. Ihre Gesundheit ist uns wichtig!`,
   },
   en: {
-    hours: `We're open daily from 11:00 AM to 10:00 PM, except on Christmas Eve. We look forward to your visit!`,
+    hours: `We're open daily from 11:00 AM to 09:00 PM, except on Christmas Eve. We look forward to your visit!`,
     location: `You can find us at Langer Rehm 25, 24149 Kiel-Dietrichsdorf. Free parking is available directly in front of the restaurant.`,
     parking: `We have free parking spaces directly in front of our restaurant. You can conveniently park right at the door.`,
     phone: `You can reach us by phone at +49 431 123456. We look forward to your call!`,

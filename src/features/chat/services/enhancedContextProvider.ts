@@ -61,7 +61,7 @@ export class EnhancedContextProvider {
     const now = new Date();
     const currentHour = now.getHours();
 
-    // Opening hours: 11:00-22:00 daily (except Christmas Eve)
+    // Opening hours: 11:00-21:00 daily (except Christmas Eve)
     const isChristmasEve = now.getMonth() === 11 && now.getDate() === 24;
 
     if (isChristmasEve) {
@@ -214,7 +214,7 @@ ${menuContext}
 RESTAURANT INFO:
 📍 Adresse: Langer Rehm 25, 24149 Kiel-Dietrichsdorf  
 📞 Telefon: +49 431 123456
-🕐 Öffnungszeiten: 11:00-22:00 Uhr (täglich außer Heiligabend)
+🕐 Öffnungszeiten: 11:00-21:00 Uhr (täglich außer Heiligabend)
 🅿️ Parkplätze: Kostenlos direkt vor dem Restaurant
 🍔 Spezialitäten: Traditioneller deutscher Imbiss, Eventgastronomie (Mai-September), Eis-Spezialitäten
 

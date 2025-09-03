@@ -307,7 +307,7 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 - **Featured System**: Photos marked as `is_featured` appear in home preview
 
 ### Restaurant-Specific Features
-- Opening hours: 11:00-22:00 daily (except Christmas Eve)
+- Opening hours: 11:00-21:00 daily (except Christmas Eve)
 - Location: Langer Rehm 25, 24149 Kiel-Dietrichsdorf
 - Three business areas: Imbiss, Eventgastronomie, Eis-Spezialitäten
 - Seasonal focus: Events May-September

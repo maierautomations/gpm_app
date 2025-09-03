@@ -75,7 +75,7 @@ export default function AboutUsScreen({ navigation }: { navigation: any }) {
           </View>
           <View style={styles.valueItem}>
             <Ionicons name="people" size={20} color="#FF0000" />
-            <Text style={styles.valueText}>Familiengeführt in 3. Generation</Text>
+            <Text style={styles.valueText}>Familiengeführt in 2. Generation</Text>
           </View>
           <View style={styles.valueItem}>
             <Ionicons name="heart" size={20} color="#FF0000" />
@@ -126,7 +126,7 @@ export default function AboutUsScreen({ navigation }: { navigation: any }) {
           <View style={styles.hoursContainer}>
             <View style={styles.hoursRow}>
               <Text style={styles.dayText}>Montag - Sonntag</Text>
-              <Text style={styles.timeText}>11:00 - 22:00 Uhr</Text>
+              <Text style={styles.timeText}>11:00 - 21:00 Uhr</Text>
             </View>
             <Text style={styles.hoursNote}>364 Tage im Jahr geöffnet</Text>
             <Text style={styles.hoursNote}>Nur Heiligabend geschlossen</Text>
