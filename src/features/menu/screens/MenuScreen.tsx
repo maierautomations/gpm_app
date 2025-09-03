@@ -14,6 +14,7 @@ import MenuService from '../services/menuService';
 import OffersService, { WeeklyOffer } from '../../offers/services/offersService';
 import MenuItem from '../components/MenuItem';
 import MenuCategory from '../components/MenuCategory';
+import MenuItemDetailModal from '../components/MenuItemDetailModal';
 import { useUserStore } from '../../../stores/userStore';
 import { Database } from '../../../services/supabase/database.types';
 import { useRoute, RouteProp } from '@react-navigation/native';
@@ -36,6 +37,8 @@ export default function MenuScreen() {
   const [currentOffers, setCurrentOffers] = useState<WeeklyOffer | null>(null);
   const [offerItemIds, setOfferItemIds] = useState<number[]>([]);
   const [offerPrices, setOfferPrices] = useState<Map<number, string>>(new Map());
+  const [selectedItem, setSelectedItem] = useState<MenuItemType | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
   
   const user = useUserStore(state => state.user);
 
@@ -171,8 +174,19 @@ export default function MenuScreen() {
   };
 
   const handleItemPress = (item: MenuItemType) => {
-    // TODO: Navigate to item details screen
-    console.log('Item pressed:', item);
+    setSelectedItem(item);
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setSelectedItem(null);
+  };
+
+  const handleToggleFavoriteInModal = async () => {
+    if (selectedItem) {
+      await handleToggleFavorite(selectedItem.id);
+    }
   };
 
   const onRefresh = () => {
@@ -278,6 +292,16 @@ export default function MenuScreen() {
           contentContainerStyle={styles.listContent}
         />
       )}
+      
+      <MenuItemDetailModal
+        visible={modalVisible}
+        item={selectedItem}
+        isFavorite={selectedItem ? favorites.includes(selectedItem.id) : false}
+        onClose={handleCloseModal}
+        onToggleFavorite={user ? handleToggleFavoriteInModal : undefined}
+        offerPrice={selectedItem ? offerPrices.get(selectedItem.id) : undefined}
+        isOffer={selectedItem ? offerItemIds.includes(selectedItem.id) : false}
+      />
     </SafeAreaView>
   );
 }
