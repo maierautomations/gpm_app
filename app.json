@@ -25,7 +25,12 @@
       },
       "package": "com.grillpartnermaier.app"
     },
-    "plugins": [["expo-notifications"]],
+    "plugins": [
+      [
+        "expo-notifications"
+      ],
+      "expo-font"
+    ],
     "extra": {
       "eas": {
         "projectId": "your-eas-project-id"
