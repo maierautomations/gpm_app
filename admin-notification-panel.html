@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grill-Partner Maier - Push Notifications Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #FF0000;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .config-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+
+        .config-section h3 {
+            color: #FF0000;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #FF0000;
+            border-bottom-color: #FF0000;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #FF0000;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #FF0000;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #cc0000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid #FF0000;
+        }
+
+        .history-item h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .history-item p {
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .history-item small {
+            color: #999;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-item input {
+            width: auto;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .checkbox-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 Push Notifications</h1>
+            <p>Grill-Partner Maier Admin Panel</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Configuration Section -->
+            <div class="config-section">
+                <h3>⚙️ Konfiguration</h3>
+                <div class="form-group">
+                    <label for="supabaseUrl">Supabase URL:</label>
+                    <input type="url" id="supabaseUrl" placeholder="https://your-project.supabase.co" value="https://cicpnssrptuawxtmckiq.supabase.co">
+                </div>
+                <div class="form-group">
+                    <label for="serviceKey">Service Role Key:</label>
+                    <input type="password" id="serviceKey" placeholder="Ihr Supabase Service Role Key">
+                </div>
+                <button class="btn btn-secondary" onclick="saveConfig()">💾 Konfiguration speichern</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('send')">📤 Senden</button>
+                <button class="tab" onclick="showTab('schedule')">⏰ Planen</button>
+                <button class="tab" onclick="showTab('automated')">🤖 Automatisiert</button>
+                <button class="tab" onclick="showTab('history')">📋 Verlauf</button>
+                <button class="tab" onclick="showTab('stats')">📊 Statistiken</button>
+            </div>
+
+            <!-- Send Notification Tab -->
+            <div id="send-tab" class="tab-content active">
+                <h3>📤 Sofortige Benachrichtigung senden</h3>
+                
+                <div class="form-group">
+                    <label for="sendTitle">Titel:</label>
+                    <input type="text" id="sendTitle" placeholder="z.B. Neue Angebote verfügbar!">
+                </div>
+                
+                <div class="form-group">
+                    <label for="sendBody">Nachricht:</label>
+                    <textarea id="sendBody" placeholder="z.B. Entdecken Sie unsere aktuellen Wochenangebote mit bis zu 30% Rabatt!"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sendType">Benachrichtigungstyp:</label>
+                    <select id="sendType">
+                        <option value="custom">Benutzerdefiniert</option>
+                        <option value="weekly_offer">Wochenangebot</option>
+                        <option value="event_reminder">Event-Erinnerung</option>
+                        <option value="app_update">App-Update</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Zielgruppe:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="radio" id="targetAll" name="target" value="all" checked>
+                            <label for="targetAll">Alle Benutzer</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="radio" id="targetIOS" name="target" value="ios">
+                            <label for="targetIOS">Nur iOS</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="radio" id="targetAndroid" name="target" value="android">
+                            <label for="targetAndroid">Nur Android</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="sendNotification()">🚀 Jetzt senden</button>
+                    <button class="btn btn-warning" onclick="previewNotification()">👀 Vorschau</button>
+                </div>
+            </div>
+
+            <!-- Schedule Notification Tab -->
+            <div id="schedule-tab" class="tab-content">
+                <h3>⏰ Benachrichtigung planen</h3>
+                
+                <div class="form-group">
+                    <label for="scheduleTitle">Titel:</label>
+                    <input type="text" id="scheduleTitle" placeholder="Geplante Benachrichtigung">
+                </div>
+                
+                <div class="form-group">
+                    <label for="scheduleBody">Nachricht:</label>
+                    <textarea id="scheduleBody" placeholder="Ihre geplante Nachricht..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="scheduleTime">Sendezeitpunkt:</label>
+                    <input type="datetime-local" id="scheduleTime">
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="scheduleCustomNotification()">⏰ Planen</button>
+                </div>
+            </div>
+
+            <!-- Automated Tab -->
+            <div id="automated-tab" class="tab-content">
+                <h3>🤖 Automatisierte Benachrichtigungen</h3>
+                
+                <div class="alert alert-warning">
+                    <strong>⚠️ Hinweis:</strong> Automatisierte Benachrichtigungen werden basierend auf Ihren aktuellen Angeboten und Events erstellt.
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="scheduleWeeklyOffers()">🍔 Wochenangebote planen</button>
+                    <button class="btn btn-success" onclick="scheduleEventReminders()">📅 Event-Erinnerungen planen</button>
+                    <button class="btn btn-warning" onclick="testCronJob()">⚙️ Cron Job testen</button>
+                </div>
+                
+                <div id="automated-results"></div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history-tab" class="tab-content">
+                <h3>📋 Benachrichtigungsverlauf</h3>
+                
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="loadHistory()">🔄 Aktualisieren</button>
+                </div>
+                
+                <div id="history-container" class="loading">
+                    Klicken Sie auf "Aktualisieren" um den Verlauf zu laden
+                </div>
+            </div>
+
+            <!-- Stats Tab -->
+            <div id="stats-tab" class="tab-content">
+                <h3>📊 Statistiken</h3>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="totalUsers">-</h3>
+                        <p>Registrierte Benutzer</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="totalTokens">-</h3>
+                        <p>Push Tokens</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="sentNotifications">-</h3>
+                        <p>Gesendete Benachrichtigungen</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="scheduledNotifications">-</h3>
+                        <p>Geplante Benachrichtigungen</p>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="loadStats()">🔄 Statistiken laden</button>
+                </div>
+            </div>
+
+            <!-- Results Area -->
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            supabaseUrl: 'https://cicpnssrptuawxtmckiq.supabase.co',
+            serviceKey: ''
+        };
+
+        // Load config from localStorage
+        const savedConfig = localStorage.getItem('notificationAdminConfig');
+        if (savedConfig) {
+            config = JSON.parse(savedConfig);
+            document.getElementById('supabaseUrl').value = config.supabaseUrl;
+            document.getElementById('serviceKey').value = config.serviceKey;
+        }
+
+        // Tab management
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Configuration
+        function saveConfig() {
+            config.supabaseUrl = document.getElementById('supabaseUrl').value;
+            config.serviceKey = document.getElementById('serviceKey').value;
+            
+            localStorage.setItem('notificationAdminConfig', JSON.stringify(config));
+            showResult('✅ Konfiguration gespeichert!', 'success');
+        }
+
+        // API Helper
+        async function callAPI(endpoint, data = null) {
+            if (!config.serviceKey) {
+                throw new Error('Bitte Service Key konfigurieren');
+            }
+
+            const url = `${config.supabaseUrl}/functions/v1/${endpoint}`;
+            const options = {
+                method: data ? 'POST' : 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${config.serviceKey}`,
+                    'apikey': config.serviceKey
+                }
+            };
+
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+
+            const response = await fetch(url, options);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API Error: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        }
+
+        // Send immediate notification
+        async function sendNotification() {
+            try {
+                const title = document.getElementById('sendTitle').value;
+                const body = document.getElementById('sendBody').value;
+                const type = document.getElementById('sendType').value;
+                const target = document.querySelector('input[name="target"]:checked').value;
+
+                if (!title || !body) {
+                    throw new Error('Titel und Nachricht sind erforderlich');
+                }
+
+                const targetAudience = target === 'all' ? { all: true } : { platform: target };
+
+                const data = {
+                    type,
+                    title,
+                    body,
+                    target_audience: targetAudience
+                };
+
+                showResult('📤 Sende Benachrichtigung...', 'warning');
+
+                const result = await callAPI('send-notification', data);
+                
+                if (result.success) {
+                    showResult(`✅ Benachrichtigung erfolgreich gesendet an ${result.sent_count} Benutzer!`, 'success');
+                    // Clear form
+                    document.getElementById('sendTitle').value = '';
+                    document.getElementById('sendBody').value = '';
+                } else {
+                    showResult(`❌ Fehler: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Fehler beim Senden: ${error.message}`, 'error');
+            }
+        }
+
+        // Preview notification
+        function previewNotification() {
+            const title = document.getElementById('sendTitle').value;
+            const body = document.getElementById('sendBody').value;
+            
+            if (!title || !body) {
+                showResult('⚠️ Bitte Titel und Nachricht eingeben für Vorschau', 'warning');
+                return;
+            }
+
+            const preview = `
+                <div class="alert alert-warning">
+                    <h4>📱 Vorschau der Benachrichtigung:</h4>
+                    <strong>${title}</strong><br>
+                    ${body}
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = preview;
+        }
+
+        // Schedule custom notification
+        async function scheduleCustomNotification() {
+            try {
+                const title = document.getElementById('scheduleTitle').value;
+                const body = document.getElementById('scheduleBody').value;
+                const scheduleTime = document.getElementById('scheduleTime').value;
+
+                if (!title || !body || !scheduleTime) {
+                    throw new Error('Alle Felder sind erforderlich');
+                }
+
+                const data = {
+                    type: 'custom',
+                    schedule_time: new Date(scheduleTime).toISOString(),
+                    custom_notification: {
+                        title,
+                        body,
+                        target_audience: { all: true }
+                    }
+                };
+
+                const result = await callAPI('schedule-notifications', data);
+                
+                if (result.success) {
+                    showResult(`✅ Benachrichtigung für ${new Date(scheduleTime).toLocaleString('de-DE')} geplant!`, 'success');
+                    // Clear form
+                    document.getElementById('scheduleTitle').value = '';
+                    document.getElementById('scheduleBody').value = '';
+                    document.getElementById('scheduleTime').value = '';
+                } else {
+                    showResult(`❌ Fehler: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Fehler beim Planen: ${error.message}`, 'error');
+            }
+        }
+
+        // Schedule weekly offers
+        async function scheduleWeeklyOffers() {
+            try {
+                showResult('📅 Plane Wochenangebote...', 'warning');
+                
+                const result = await callAPI('schedule-notifications', {
+                    type: 'weekly_offers'
+                });
+                
+                if (result.success) {
+                    showResult(`✅ ${result.scheduled_count} Wochenangebot-Benachrichtigungen geplant!`, 'success');
+                } else {
+                    showResult(`❌ Fehler: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        // Schedule event reminders
+        async function scheduleEventReminders() {
+            try {
+                showResult('📅 Plane Event-Erinnerungen...', 'warning');
+                
+                const result = await callAPI('schedule-notifications', {
+                    type: 'event_reminders'
+                });
+                
+                if (result.success) {
+                    showResult(`✅ ${result.scheduled_count} Event-Erinnerungen geplant!`, 'success');
+                } else {
+                    showResult(`❌ Fehler: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        // Test cron job
+        async function testCronJob() {
+            try {
+                showResult('⚙️ Teste Cron Job...', 'warning');
+                
+                const result = await callAPI('notification-cron');
+                
+                if (result.success) {
+                    const details = result.results;
+                    showResult(`✅ Cron Job ausgeführt: ${details.processed} verarbeitet, ${details.sent} gesendet, ${details.failed} fehlgeschlagen`, 'success');
+                } else {
+                    showResult(`❌ Fehler: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        // Load notification history
+        async function loadHistory() {
+            try {
+                document.getElementById('history-container').innerHTML = '<div class="loading">Lade Verlauf...</div>';
+                
+                // This would typically call a Supabase API to get notification history
+                // For now, we'll show a placeholder
+                const historyHtml = `
+                    <div class="alert alert-warning">
+                        <strong>ℹ️ Hinweis:</strong> Der Benachrichtigungsverlauf kann über die Supabase Dashboard → Table Editor → notification_history eingesehen werden.
+                    </div>
+                `;
+                
+                document.getElementById('history-container').innerHTML = historyHtml;
+            } catch (error) {
+                document.getElementById('history-container').innerHTML = `<div class="alert alert-error">❌ Fehler beim Laden: ${error.message}</div>`;
+            }
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                // This would typically call Supabase to get real stats
+                // For now, we'll show placeholder values
+                document.getElementById('totalUsers').textContent = '~';
+                document.getElementById('totalTokens').textContent = '~';
+                document.getElementById('sentNotifications').textContent = '~';
+                document.getElementById('scheduledNotifications').textContent = '~';
+                
+                showResult('ℹ️ Statistiken können über die Supabase Dashboard → Table Editor eingesehen werden', 'warning');
+            } catch (error) {
+                showResult(`❌ Fehler beim Laden der Statistiken: ${error.message}`, 'error');
+            }
+        }
+
+        // Show result message
+        function showResult(message, type) {
+            const alertClass = type === 'success' ? 'alert-success' : 
+                              type === 'error' ? 'alert-error' : 'alert-warning';
+            
+            const html = `<div class="alert ${alertClass}">${message}</div>`;
+            document.getElementById('results').innerHTML = html;
+            
+            // Auto-clear after 5 seconds for success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    document.getElementById('results').innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        // Initialize default datetime for scheduling
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 60); // Default to 1 hour from now
+            document.getElementById('scheduleTime').value = now.toISOString().slice(0, 16);
+        });
+    </script>
+</body>
+</html>
