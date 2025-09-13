@@ -1,7 +1,0 @@
-project_id = "cicpnssrptuawxtmckiq"
-
-[api]
-enabled = true
-
-[auth]
-enabled = true
