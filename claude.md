@@ -17,11 +17,17 @@ npm run web      # Web development
 npm install
 
 # Generate Supabase types (when schema changes)
-npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/services/supabase/database.types.ts
+npx supabase gen types typescript --project-id cicpnssrptuawxtmckiq > src/services/supabase/database.types.ts
 
 # Linting and formatting
 npx eslint src/                # Check code quality
 npx prettier --write src/       # Format code
+
+# Test Edge Functions (after deployment)
+curl -X POST "https://cicpnssrptuawxtmckiq.supabase.co/functions/v1/send-notification" \
+  -H "Authorization: Bearer YOUR_ANON_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"type": "test", "title": "Test", "body": "Test notification"}'
 ```
 
 ## Architecture Overview
@@ -29,11 +35,12 @@ npx prettier --write src/       # Format code
 This is a React Native Expo app for Grill-Partner Maier, a German restaurant in Kiel (since 1968). The architecture follows a feature-based organization pattern with service-oriented design for optimal UX and maintainability.
 
 ### Core Stack
-- **Frontend**: React Native 0.79.5 with Expo SDK 53
+- **Frontend**: React Native 0.81.4 with Expo SDK 54
 - **State Management**: Zustand for global state (user authentication)
-- **Backend**: Supabase (PostgreSQL, Auth, Realtime, Storage)
+- **Backend**: Supabase (PostgreSQL, Auth, Realtime, Storage, Edge Functions)
 - **Navigation**: React Navigation with Stack + Bottom Tabs
 - **AI Integration**: Google Gemini API (95% cheaper than OpenAI, direct fetch)
+- **Push Notifications**: Expo Notifications + Expo Push Service (fully automated)
 - **Photo Management**: react-native-image-viewing for full-screen viewing
 - **Calendar**: react-native-calendars for event calendar view
 - **File Sharing**: expo-sharing for photo sharing functionality
@@ -46,8 +53,9 @@ This is a React Native Expo app for Grill-Partner Maier, a German restaurant in 
 1. **Service Layer Pattern**: All Supabase interactions go through service classes
    - Feature services located in `src/features/[feature]/services/`
    - Core services (Supabase client) in `src/services/supabase/`
-   - Each domain has its own service (MenuService, EventsService, ChatService, OffersService, GalleryService, LoyaltyService)
+   - Each domain has its own service (MenuService, EventsService, ChatService, OffersService, GalleryService, LoyaltyService, NotificationService)
    - **GalleryService**: Handles photo loading, categorization, and real-time updates
+   - **NotificationService**: Manages push tokens, permissions, and notification handling
    - Services return typed data from `database.types.ts`
    - Real-time subscriptions handled at service level
 
@@ -170,6 +178,31 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 - `code_id`: which code was used
 - `type`: 'earned' | 'redeemed'
 - `points`: amount
+
+### Push Notification Tables
+
+**push_tokens** (device registration - ✅ FULLY IMPLEMENTED)
+- `id`: uuid (primary key)
+- `user_id`: references auth.users
+- `token`: Expo push token
+- `device_info`: device metadata
+- `is_active`: token validity status
+- `last_used`: automatic deactivation after 60 days
+
+**notification_history** (sent notifications log - ✅ FULLY IMPLEMENTED)
+- `id`: uuid (primary key)
+- `type`: notification type (weekly_offer, event_reminder, etc.)
+- `title`, `body`: notification content
+- `sent_to_count`: number of recipients
+- `created_at`: timestamp
+
+**scheduled_notifications** (future notifications queue - ✅ FULLY IMPLEMENTED)
+- `id`: uuid (primary key)
+- `type`: notification type
+- `title`, `body`: notification content
+- `scheduled_for`: when to send
+- `target_audience`: who receives it
+- `sent`: processing status
 
 ## Settings & User Preferences - ✅ FULLY IMPLEMENTED
 
@@ -312,6 +345,33 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 - Three business areas: Imbiss, Eventgastronomie, Eis-Spezialitäten
 - Seasonal focus: Events May-September
 
+### Push Notifications System - ✅ FULLY IMPLEMENTED
+
+The app includes a complete push notification system with automation and admin controls:
+
+#### Features
+- **Automated Weekly Offers**: Every Monday at 10:00 AM (German time)
+- **Event Reminders**: Day before at 6:00 PM automatically
+- **Manual Notifications**: Admin panel for custom messages
+- **Deep Linking**: Opens specific app screens from notifications
+- **Quiet Hours**: No notifications between 21:00-11:00
+- **User Preferences**: Full control via NotificationSettings
+
+#### Technical Implementation
+- **3 Edge Functions Deployed**:
+  - `send-notification`: Handles actual push delivery via Expo
+  - `schedule-notifications`: Creates scheduled notifications
+  - `notification-cron`: Processes queue hourly
+- **Dashboard Deployment**: No Docker required, deployed via Supabase Dashboard
+- **Automation**: Cron job runs every hour to process scheduled notifications
+- **Security**: RLS policies protect user data and tokens
+- **Token Management**: Automatic deactivation after 60 days of inactivity
+
+#### Cost Analysis
+- **Current Usage**: < €0.50/month (0.17% of Supabase free tier)
+- **At 10,000 users**: Still within free tier (< €1/month)
+- **Expo Push Service**: Always free, unlimited notifications
+
 ### Current Implementation Status
 
 #### ✅ FULLY IMPLEMENTED FEATURES
@@ -320,6 +380,7 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 - **Events Calendar**: List/calendar views, favorites, date selection
 - **AI Chatbot**: Google Gemini integration, bilingual, chat history
 - **Photo Gallery**: 3 categories, full-screen viewer, share functionality
+- **Push Notifications**: Complete system with automation and admin panel
 - **User Settings**: 4 settings screens with AsyncStorage persistence
 - **Authentication**: Supabase Auth with profile management
 - **Home Dashboard**: Quick actions, offers preview, gallery preview
@@ -332,17 +393,19 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 - **ChatService**: Message persistence and Gemini API integration
 - **GalleryService**: Photo categorization and featured system
 - **AuthService**: User authentication and profile management
+- **NotificationService**: Push token management, permission handling, notification delivery
 
 #### ✅ DATABASE FULLY CONFIGURED
-- **Complete Schema**: 10 tables with proper relationships
+- **Complete Schema**: 13 tables with proper relationships (including push notification tables)
 - **Weekly Rotation**: SQL functions for manual/automatic switching
 - **Hybrid Offers**: Both menu items and custom combo support
 - **User Data**: Profiles, favorites, chat history, loyalty points
+- **Push Notifications**: Token management, history tracking, scheduled queue
+- **RLS Policies**: Security configured for all tables
 
 #### ❌ PENDING FEATURES
 - QR scanner for loyalty points
 - Points transaction history UI
-- Push notifications system
 - Google Maps integration
 - Caching layer for chatbot
 - Full i18n implementation (translations ready)
@@ -358,6 +421,8 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 7. **Settings Navigation**: ✅ Fixed - All settings screens now have working navigation
 8. **Custom Offers Display**: ✅ Fixed - OffersService handles both linked and custom items
 9. **Weekly Rotation**: ✅ Implemented - SQL functions for week switching
+10. **Docker Edge Functions**: ✅ Bypassed - Dashboard deployment without Docker
+11. **Push Notifications**: ✅ Implemented - Complete system with automation
 
 ## Testing & Development Notes
 
@@ -372,6 +437,10 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
   - `supabase-weekly-rotation.sql` - Weekly rotation functions
   - `supabase-combo-offers-inserts.sql` - Custom combo items
   - `supabase-migration-extend-offers.sql` - Table extensions
+- **Documentation Files**:
+  - `docs/push-notifications-complete-guide.md` - Full notification system documentation
+  - `docs/deploy-via-dashboard.md` - Edge Function deployment guide
+  - `docs/project_plan.md` - Overall project status and timeline
 
 ## Weekly Offers Management
 
@@ -426,25 +495,18 @@ Default language is German, with English as secondary option in chatbot.
 - **Navigation**: Accessible from Profile and HomeScreen quick actions
 - **Database Ready**: loyalty_codes and loyalty_transactions tables exist
 
-### 2. Push Notifications (Medium Priority)
-- **expo-notifications**: Install and configure
-- **Permission Handling**: Request permissions on first launch
-- **Supabase Integration**: Trigger notifications for weekly offers, events
-- **Settings Integration**: Use existing NotificationSettings toggles
-- **Background Sync**: Update offers and events automatically
-
-### 3. Google Maps Integration (Medium Priority)
+### 2. Google Maps Integration (Medium Priority)
 - **Restaurant Location**: Interactive map with directions
 - **Event Locations**: Show different event venues on map
 - **Contact Integration**: Enhanced "Route" button functionality
 
-### 4. Performance Optimizations (Low Priority)
+### 3. Performance Optimizations (Low Priority)
 - **Image Caching**: Optimize gallery photo loading
 - **Chat Caching**: Cache common chatbot responses
 - **Offline Support**: Basic offline functionality for menu/favorites
 - **Bundle Optimization**: Code splitting for features
 
-### 5. Full i18n Implementation (Future)
+### 4. Full i18n Implementation (Future)
 - **react-native-localize**: Device language detection
 - **i18n-js**: Translation system integration
 - **Content Translation**: Translate all static content

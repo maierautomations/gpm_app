@@ -213,7 +213,7 @@ ${menuContext}
 ═══════════════════════════════════════════
 RESTAURANT INFO:
 📍 Adresse: Langer Rehm 25, 24149 Kiel-Dietrichsdorf  
-📞 Telefon: +49 431 123456
+📞 Telefon: +49 431 203615
 🕐 Öffnungszeiten: 11:00-21:00 Uhr (täglich außer Heiligabend)
 🅿️ Parkplätze: Kostenlos direkt vor dem Restaurant
 🍔 Spezialitäten: Traditioneller deutscher Imbiss, Eventgastronomie (Mai-September), Eis-Spezialitäten

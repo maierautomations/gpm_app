@@ -2,9 +2,9 @@ import { supabase } from '../../../services/supabase/client';
 import { Database } from '../../../services/supabase/database.types';
 import MenuService from '../../menu/services/menuService';
 import ChatMessageService from './chatMessageService';
+import ContextManager from './contextManager';
 
 type ChatMessage = Database['public']['Tables']['chat_messages']['Row'];
-type ChatMessageInsert = Database['public']['Tables']['chat_messages']['Insert'];
 
 // Restaurant knowledge base (same as before)
 const RESTAURANT_INFO = {
@@ -29,25 +29,18 @@ const RESTAURANT_INFO = {
   ]
 };
 
-const SYSTEM_PROMPT_DE = `Du bist der freundliche Assistent von Grill-Partner Maier in Kiel-Dietrichsdorf. 
-Das Restaurant ist ein Familienbetrieb seit 1968.
-
-WICHTIGE INFORMATIONEN:
-- Restaurant: ${RESTAURANT_INFO.name}
-- Adresse: ${RESTAURANT_INFO.location}
-- Öffnungszeiten: ${RESTAURANT_INFO.hours}
-- Parkplätze: ${RESTAURANT_INFO.parking}
-- Spezialitäten: ${RESTAURANT_INFO.specialties.join(', ')}
+const SYSTEM_PROMPT_DE = `Du bist der freundliche KI-Assistent von Grill-Partner Maier.
 
 VERHALTENSREGELN:
 1. Sei immer freundlich, hilfsbereit und professionell
 2. Betone die Familientradition und Qualität seit 1968
-3. Bei Fragen zur Speisekarte: Verweise auf den Menü-Tab für aktuelle Preise und vollständige Auswahl
-4. Bei Allergenen: Betone, dass Infos im Menü verfügbar sind und wir gerne persönlich beraten
+3. Bei Speisekartenfragen: Gib konkrete Informationen aus dem bereitgestellten Kontext
+4. Bei Allergenen: Betone, dass alle Allergene im Menü markiert sind
 5. Bei Events: Erwähne unsere Erfahrung in der Eventgastronomie
-6. Verwende lokale Begriffe (z.B. "Moin" als Begrüßung ist okay)
+6. Verwende lokale Begriffe (z.B. "Moin" als Begrüßung)
+7. Antworte informativ aber präzise - der Kontext enthält alle Details
 
-Antworte kurz und präzise, aber warmherzig.`;
+Der vollständige Kontext mit Speisekarte, Angeboten und Restaurant-Infos ist unten verfügbar:`;
 
 const SYSTEM_PROMPT_EN = `You are the friendly assistant for Grill-Partner Maier in Kiel-Dietrichsdorf, Germany.
 The restaurant has been a family business since 1968.
@@ -85,25 +78,14 @@ export class ChatServiceGemini {
     return germanCount > englishCount ? 'de' : 'en';
   }
 
-  static async getMenuContext(): Promise<string> {
+  static async getEnhancedContext(query: string): Promise<string> {
     try {
-      const menuItems = await MenuService.getMenuItems();
-      const categories = await MenuService.getCategories();
-      
-      if (menuItems.length === 0) return '';
-      
-      const menuByCategory = categories.map(cat => {
-        const items = menuItems.filter(item => item.category === cat);
-        const itemsList = items.slice(0, 5).map(item => 
-          `- ${item.name}: €${parseFloat(item.price).toFixed(2)}`
-        ).join('\n');
-        return `${cat.toUpperCase()}:\n${itemsList}`;
-      }).join('\n\n');
-      
-      return `AKTUELLE SPEISEKARTE (Auszug):\n${menuByCategory}\n\nFür die vollständige Speisekarte mit allen ${menuItems.length} Gerichten verweise auf den Menü-Tab.`;
+      // Use ContextManager's optimized context based on query
+      return await ContextManager.getOptimizedContext(query);
     } catch (error) {
-      console.error('Error fetching menu context:', error);
-      return '';
+      console.error('Error fetching enhanced context:', error);
+      // Fallback to basic context
+      return await ContextManager.getCompactContext();
     }
   }
 
@@ -114,9 +96,10 @@ export class ChatServiceGemini {
   ): Promise<string> {
     try {
       const language = this.detectLanguage(message);
-      const menuContext = await this.getMenuContext();
+      // Get context optimized for the specific query
+      const enhancedContext = await this.getEnhancedContext(message);
       const systemPrompt = language === 'de' ? SYSTEM_PROMPT_DE : SYSTEM_PROMPT_EN;
-      const fullSystemPrompt = menuContext ? `${systemPrompt}\n\n${menuContext}` : systemPrompt;
+      const fullSystemPrompt = `${systemPrompt}\n\n${enhancedContext}`;
 
       // Google Gemini API (95% cheaper than OpenAI!)
       const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;

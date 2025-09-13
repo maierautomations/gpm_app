@@ -33,8 +33,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "your-eas-project-id"
+        "projectId": "59052b4f-09dd-4710-ae27-9c95b9d5250f"
       }
-    }
+    },
+    "owner": "maierai"
   }
 }

@@ -10,7 +10,7 @@ const RESTAURANT_INFO = {
   name: 'Grill-Partner Maier',
   established: 1968,
   location: 'Langer Rehm 25, 24149 Kiel-Dietrichsdorf',
-  phone: '+49 431 123456', // Update with actual phone
+  phone: '+49 431 203615', // Update with actual phone
   hours: '11:00-21:00 Uhr (täglich außer Heiligabend)',
   parking: 'Kostenlose Parkplätze direkt vor dem Restaurant',
   specialties: [
