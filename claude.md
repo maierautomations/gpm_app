@@ -2,6 +2,28 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚀 v1 Release Status (January 2025)
+
+**IMPORTANT**: The app is configured for v1 production release with the following key decisions:
+
+### What's IN v1:
+- ✅ Full menu system with 125+ items
+- ✅ Weekly offers with rotation system
+- ✅ Events calendar with reminders
+- ✅ AI chatbot (Google Gemini)
+- ✅ Photo gallery
+- ✅ Push notifications (3 types: offers, events, updates)
+- ✅ Social media integration (Facebook & Instagram @grillmaier149)
+- ✅ User authentication & profiles
+
+### What's DEFERRED to v2:
+- ⏳ Loyalty/points system (database ready, UI removed for cleaner v1)
+- ⏳ QR code scanner
+- ⏳ Google Maps integration
+- ⏳ Full i18n implementation
+
+**Note**: All loyalty infrastructure remains in the database but has been removed from the UI to avoid showing non-functional features in v1.
+
 ## Common Development Commands
 
 ```bash
@@ -132,7 +154,7 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 - `id`: uuid (references auth.users)
 - `favorites`: number[] (menu_item IDs)
 - `favorite_events`: jsonb (event IDs)
-- `loyalty_points`: number
+- `loyalty_points`: number (database field preserved for v2, not shown in UI)
 - `name`, `email`: user info
 
 **events**
@@ -167,17 +189,19 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 - `is_featured`: for home preview
 - `display_order`: for sorting
 
-**loyalty_codes** (QR code validation - database ready, scanner pending)
+**loyalty_codes** (database preserved for future v2 implementation)
 - `code`: unique identifier
 - `points`: value
 - `valid_until`: expiration
 - `max_uses`, `current_uses`: usage tracking
+- **Note**: Table exists but no UI implementation in v1
 
-**loyalty_transactions** (points history - database ready, UI pending)
+**loyalty_transactions** (database preserved for future v2 implementation)
 - `user_id`: who earned/redeemed
 - `code_id`: which code was used
 - `type`: 'earned' | 'redeemed'
 - `points`: amount
+- **Note**: Table exists but no UI implementation in v1
 
 ### Push Notification Tables
 
@@ -188,6 +212,7 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 - `device_info`: device metadata
 - `is_active`: token validity status
 - `last_used`: automatic deactivation after 60 days
+- `notification_settings`: removed pointsEarned, only weeklyOffers, eventReminders, appUpdates
 
 **notification_history** (sent notifications log - ✅ FULLY IMPLEMENTED)
 - `id`: uuid (primary key)
@@ -209,9 +234,9 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 The app includes a comprehensive settings system with proper navigation and data persistence:
 
 ### Settings Screens
-- **NotificationSettings**: Toggle switches for weekly offers, events, loyalty points, app updates
+- **NotificationSettings**: Toggle switches for weekly offers, events, app updates (3 options)
 - **LanguageSettings**: German/English selection (ready for full i18n integration)
-- **HelpSupport**: FAQ section, contact options, feature explanations
+- **HelpSupport**: FAQ section with social media info, contact options
 - **AboutUs**: Restaurant history, values, contact info, app version
 
 ### Data Persistence
@@ -318,16 +343,17 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 - **Gallery Preview**: Horizontal scroll of featured photos with category badges
 - **Quick Actions**: Restaurant call, directions, menu, events access
 - **Weekly Offers Banner**: Horizontal scroll showing all discounted items
+- **Social Media CTA**: Instagram follow button with direct link
 - **Touch-optimized**: ScrollView separated from TouchableWithoutFeedback
 - **Visual Appeal**: Restaurant header image with overlay text
 - **Status Indicators**: Real-time open/closed status with colored badges
 - Central access point for key features
 
-### Profile & Loyalty
-- **QR Scanner Integration**: Prominent "Punkte sammeln" button
-- Points balance display
-- Transaction history
+### Profile & Social Media
+- **Social Media Card**: Facebook & Instagram links (@grillmaier149)
+- Quick action buttons for menu, chat, events
 - Favorites management (menu items & events)
+- Settings access with stack navigation
 
 ### Photo Gallery
 - **Gallery Preview on HomeScreen**: Horizontal scroll of featured photos
@@ -399,16 +425,15 @@ The app includes a complete push notification system with automation and admin c
 - **Complete Schema**: 13 tables with proper relationships (including push notification tables)
 - **Weekly Rotation**: SQL functions for manual/automatic switching
 - **Hybrid Offers**: Both menu items and custom combo support
-- **User Data**: Profiles, favorites, chat history, loyalty points
+- **User Data**: Profiles, favorites, chat history, loyalty points (DB only)
 - **Push Notifications**: Token management, history tracking, scheduled queue
 - **RLS Policies**: Security configured for all tables
 
-#### ❌ PENDING FEATURES
-- QR scanner for loyalty points
-- Points transaction history UI
-- Google Maps integration
-- Caching layer for chatbot
-- Full i18n implementation (translations ready)
+#### 🔮 FUTURE FEATURES (v2)
+- **Loyalty Program**: QR scanner, points UI, transaction history (DB tables ready)
+- **Google Maps integration**: Interactive maps for restaurant and events
+- **Caching layer**: Optimize chatbot responses
+- **Full i18n**: Complete German/English translations
 
 ## Known Issues & Solutions
 
@@ -488,34 +513,28 @@ Default language is German, with English as secondary option in chatbot.
 
 ## Next Development Priorities
 
-### 1. QR Loyalty Scanner (High Priority)
-- **Scanner Screen**: Use expo-camera or expo-barcode-scanner
-- **Points Validation**: Edge Function to validate codes and award points
-- **Transaction History**: UI screen showing earned/redeemed points
-- **Navigation**: Accessible from Profile and HomeScreen quick actions
-- **Database Ready**: loyalty_codes and loyalty_transactions tables exist
+### 1. App Store Submission (High Priority)
+- **Beta Testing**: Test with selected users
+- **Store Assets**: Screenshots, descriptions, keywords
+- **Privacy Policy**: GDPR-compliant documentation
+- **App Review**: Prepare for Apple/Google review process
 
-### 2. Google Maps Integration (Medium Priority)
-- **Restaurant Location**: Interactive map with directions
-- **Event Locations**: Show different event venues on map
-- **Contact Integration**: Enhanced "Route" button functionality
+### 2. Loyalty Program v2 (Future Release)
+- **QR Scanner**: Camera-based code scanning with expo-camera
+- **Points UI**: Balance display and transaction history
+- **Edge Functions**: Validation and points management
+- **Database Ready**: Tables and structure already in place
 
-### 3. Performance Optimizations (Low Priority)
-- **Image Caching**: Optimize gallery photo loading
-- **Chat Caching**: Cache common chatbot responses
-- **Offline Support**: Basic offline functionality for menu/favorites
-- **Bundle Optimization**: Code splitting for features
-
-### 4. Full i18n Implementation (Future)
-- **react-native-localize**: Device language detection
-- **i18n-js**: Translation system integration
-- **Content Translation**: Translate all static content
-- **Dynamic Content**: Menu items and event descriptions in both languages
+### 3. Enhanced Features (Ongoing)
+- **Google Maps**: Interactive maps for location and events
+- **Performance**: Image caching, chat optimization
+- **Offline Mode**: Basic functionality without internet
+- **Full i18n**: Complete bilingual support
 
 ## UX Principles
 
 1. **No Navigation Complexity**: Bottom tabs only, features integrated into existing screens
 2. **Progressive Disclosure**: Show previews on home, expand to full views
-3. **Contextual Placement**: Features where users expect them (loyalty in profile, offers with menu)
+3. **Contextual Placement**: Features where users expect them (social media in profile, offers with menu)
 4. **Visual First**: Gallery preview attracts on home screen
-5. **Quick Access**: Important actions (QR scan) available from multiple entry points
+5. **Focus on Working Features**: v1 shows only fully implemented features, no placeholders
