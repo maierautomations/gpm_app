@@ -20,8 +20,8 @@ type FAQItem = {
 const faqData: FAQItem[] = [
   {
     id: '1',
-    question: 'Wie sammle ich Treuepunkte?',
-    answer: 'Scannen Sie einfach den QR-Code an der Kasse oder nutzen Sie die Scanner-Funktion in der App. Pro Euro Einkauf erhalten Sie einen Punkt.'
+    question: 'Wo finde ich aktuelle Neuigkeiten?',
+    answer: 'Folgen Sie uns auf Facebook und Instagram für tägliche Updates, Spezialangebote und Event-Ankündigungen.'
   },
   {
     id: '2',

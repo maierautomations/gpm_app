@@ -114,7 +114,7 @@ curl -X POST "https://cicpnssrptuawxtmckiq.supabase.co/functions/v1/send-notific
 
 ```bash
 curl -X POST "https://cicpnssrptuawxtmckiq.supabase.co/functions/v1/schedule-notifications" \
-  -H "Authorization: Bearer YOUR_SERVICE_ROLE_KEY" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpY3Buc3NycHR1YXd4dG1ja2lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3ODQ3MzcsImV4cCI6MjA2ODM2MDczN30.Vq2qpe1d02Bp5sXT81RfhpqAaiUAbOq7ezmOiVTs1GE" \
   -H "Content-Type: application/json" \
   -d '{"type": "weekly_offers"}'
 ```

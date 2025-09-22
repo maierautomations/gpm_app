@@ -51,8 +51,6 @@
   },
   "profile": {
     "title": "Mein Profil",
-    "loyaltyPoints": "Treuepunkte",
-    "collectPoints": "Punkte sammeln",
     "favorites": "Meine Favoriten",
     "settings": "Einstellungen",
     "logout": "Abmelden",
@@ -67,11 +65,11 @@
     "savings": "Sie sparen",
     "specialPrice": "Sonderpreis"
   },
-  "loyalty": {
-    "scanCode": "Code scannen",
-    "enterCode": "Code eingeben",
-    "pointsEarned": "Punkte erhalten",
-    "pointsRedeemed": "Punkte eingelöst",
-    "history": "Verlauf"
+  "social": {
+    "followUs": "Folgen Sie uns",
+    "facebook": "Facebook",
+    "instagram": "Instagram",
+    "stayUpdated": "Bleiben Sie auf dem Laufenden",
+    "dailyUpdates": "Täglich neue Bilder und Angebote"
   }
 }

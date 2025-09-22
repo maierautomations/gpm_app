@@ -1,14 +1,12 @@
-export type NotificationType = 
-  | 'weekly_offer' 
-  | 'event_reminder' 
-  | 'points_earned' 
-  | 'app_update' 
+export type NotificationType =
+  | 'weekly_offer'
+  | 'event_reminder'
+  | 'app_update'
   | 'custom';
 
 export interface NotificationSettings {
   weeklyOffers: boolean;
   eventReminders: boolean;
-  pointsEarned: boolean;
   appUpdates: boolean;
 }
 

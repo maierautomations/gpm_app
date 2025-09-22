@@ -21,7 +21,6 @@ import { NotificationSettings } from '../../../services/notifications/types';
 const defaultSettings: NotificationSettings = {
   weeklyOffers: true,
   eventReminders: true,
-  pointsEarned: true,
   appUpdates: false
 };
 
@@ -249,25 +248,6 @@ export default function NotificationSettingsScreen({ navigation }: { navigation:
               onValueChange={(value) => handleSettingChange('eventReminders', value)}
               trackColor={{ false: '#d3d3d3', true: '#ffcccc' }}
               thumbColor={settings.eventReminders ? '#FF0000' : '#f4f3f4'}
-              disabled={permissionStatus !== 'granted'}
-            />
-          </View>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingIcon}>
-              <Ionicons name="star" size={20} color="#FF0000" />
-            </View>
-            <View style={styles.settingText}>
-              <Text style={styles.settingTitle}>Treuepunkte</Text>
-              <Text style={styles.settingSubtitle}>
-                Bei Punktestand-Änderungen
-              </Text>
-            </View>
-            <Switch
-              value={settings.pointsEarned}
-              onValueChange={(value) => handleSettingChange('pointsEarned', value)}
-              trackColor={{ false: '#d3d3d3', true: '#ffcccc' }}
-              thumbColor={settings.pointsEarned ? '#FF0000' : '#f4f3f4'}
               disabled={permissionStatus !== 'granted'}
             />
           </View>

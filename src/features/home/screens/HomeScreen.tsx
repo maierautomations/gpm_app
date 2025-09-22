@@ -276,20 +276,18 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Loyalty CTA (if not logged in) */}
-        {!user && (
-          <TouchableOpacity 
-            style={styles.ctaCard}
-            onPress={() => handleQuickAction('Profile')}
-          >
-            <Ionicons name="gift-outline" size={32} color="#FFF" />
-            <View style={styles.ctaContent}>
-              <Text style={styles.ctaTitle}>Treuepunkte sammeln!</Text>
-              <Text style={styles.ctaText}>Jetzt anmelden und bei jedem Besuch profitieren</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={24} color="#FFF" />
-          </TouchableOpacity>
-        )}
+        {/* Social Media CTA */}
+        <TouchableOpacity
+          style={styles.ctaCard}
+          onPress={() => Linking.openURL('https://instagram.com/grillmaier149')}
+        >
+          <Ionicons name="logo-instagram" size={32} color="#FFF" />
+          <View style={styles.ctaContent}>
+            <Text style={styles.ctaTitle}>Folgen Sie uns!</Text>
+            <Text style={styles.ctaText}>Täglich neue Bilder und Angebote auf Instagram</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color="#FFF" />
+        </TouchableOpacity>
 
         {/* Footer */}
         <View style={styles.footer}>

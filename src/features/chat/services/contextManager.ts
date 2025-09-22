@@ -206,14 +206,14 @@ export class ContextManager {
     }
   }
 
-  // Get loyalty program context
-  static async getLoyaltyContext(): Promise<string> {
-    return `TREUEPROGRAMM:
-- Sammeln Sie Punkte bei jedem Besuch
-- QR-Codes an der Kasse scannen
-- 10 Punkte = 1€ Rabatt
-- Punkte verfallen nicht
-- Exklusive Angebote für Stammkunden`;
+  // Get social media context
+  static getSocialMediaContext(): string {
+    return `SOCIAL MEDIA:
+- Facebook: @grillmaier149
+- Instagram: @grillmaier149
+- Folgen für tägliche Updates und Angebote
+- Aktuelle Bilder vom Restaurant und Events
+- Exklusive Ankündigungen und Gewinnspiele`;
   }
 
   // Get restaurant info context
@@ -245,7 +245,7 @@ ${RESTAURANT_CONFIG.services.map(s => `- ${s}`).join('\n')}`;
     includeMenu?: boolean;
     includeEvents?: boolean;
     includeGallery?: boolean;
-    includeLoyalty?: boolean;
+    includeSocial?: boolean;
     includeRestaurantInfo?: boolean;
     compact?: boolean;
   }): Promise<string> {
@@ -253,7 +253,7 @@ ${RESTAURANT_CONFIG.services.map(s => `- ${s}`).join('\n')}`;
       includeMenu: true,
       includeEvents: true,
       includeGallery: true,
-      includeLoyalty: true,
+      includeSocial: true,
       includeRestaurantInfo: true,
       compact: false,
       ...options,
@@ -294,11 +294,11 @@ ${RESTAURANT_CONFIG.services.map(s => `- ${s}`).join('\n')}`;
       }
     }
 
-    // Add loyalty context
-    if (opts.includeLoyalty) {
-      const loyaltyContext = await this.getLoyaltyContext();
-      if (loyaltyContext) {
-        contextParts.push(loyaltyContext);
+    // Add social media context
+    if (opts.includeSocial) {
+      const socialContext = this.getSocialMediaContext();
+      if (socialContext) {
+        contextParts.push(socialContext);
         contextParts.push('');
       }
     }
@@ -342,7 +342,7 @@ ${RESTAURANT_CONFIG.services.map(s => `- ${s}`).join('\n')}`;
     needsMenu: boolean;
     needsEvents: boolean;
     needsGallery: boolean;
-    needsLoyalty: boolean;
+    needsSocial: boolean;
     needsRestaurantInfo: boolean;
   } {
     const lowerQuery = query.toLowerCase();
@@ -351,7 +351,7 @@ ${RESTAURANT_CONFIG.services.map(s => `- ${s}`).join('\n')}`;
       needsMenu: /speise|menu|essen|food|preis|price|burger|pizza|döner|currywurst|angebot|offer/.test(lowerQuery),
       needsEvents: /veranstaltung|event|fest|catering|kieler woche/.test(lowerQuery),
       needsGallery: /foto|photo|bild|galerie|gallery|aussehen|look/.test(lowerQuery),
-      needsLoyalty: /punkte|points|treue|loyalty|rabatt|discount|qr/.test(lowerQuery),
+      needsSocial: /social|facebook|instagram|folgen|follow|updates|neuigkeit|news/.test(lowerQuery),
       needsRestaurantInfo: /öffnung|opening|adresse|address|telefon|phone|parken|parking|zahlung|payment/.test(lowerQuery),
     };
   }
@@ -372,7 +372,7 @@ ${RESTAURANT_CONFIG.services.map(s => `- ${s}`).join('\n')}`;
       includeMenu: contextNeeds.needsMenu,
       includeEvents: contextNeeds.needsEvents,
       includeGallery: contextNeeds.needsGallery,
-      includeLoyalty: contextNeeds.needsLoyalty,
+      includeSocial: contextNeeds.needsSocial,
       includeRestaurantInfo: true, // Always include basic info
     });
   }

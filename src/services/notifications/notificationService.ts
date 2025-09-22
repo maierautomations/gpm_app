@@ -111,7 +111,6 @@ class NotificationService {
       const settings = savedSettings ? JSON.parse(savedSettings) : {
         weeklyOffers: true,
         eventReminders: true,
-        pointsEarned: true,
         appUpdates: false
       };
 
@@ -204,9 +203,6 @@ class NotificationService {
         break;
       case 'event_reminder':
         // Navigate to events screen
-        break;
-      case 'points_earned':
-        // Navigate to profile/loyalty screen
         break;
       default:
         // Default navigation

@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  Alert, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
   ScrollView,
   SafeAreaView,
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Linking
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '../../../stores/userStore';
@@ -91,8 +92,7 @@ export default function ProfileScreen() {
           email: user.email,
           full_name: null,
           favorites: [],
-          favorite_events: [],
-          loyalty_points: '0'
+          favorite_events: []
         })
         .select()
         .single();
@@ -222,14 +222,6 @@ export default function ProfileScreen() {
     return date.toLocaleDateString('de-DE', options);
   };
 
-  const getLoyaltyStatus = () => {
-    const points = profile?.loyalty_points ? parseFloat(profile.loyalty_points) : 0;
-    if (points >= 500) return { level: 'Gold', color: '#FFD700', nextLevel: null };
-    if (points >= 200) return { level: 'Silber', color: '#C0C0C0', nextLevel: 500 };
-    if (points >= 50) return { level: 'Bronze', color: '#CD7F32', nextLevel: 200 };
-    return { level: 'Starter', color: '#666', nextLevel: 50 };
-  };
-
   // If user is not logged in, show login/signup form
   if (!user) {
     return (
@@ -249,8 +241,8 @@ export default function ProfileScreen() {
                 {isSignUp ? 'Konto erstellen' : 'Willkommen zurück'}
               </Text>
               <Text style={styles.authSubtitle}>
-                {isSignUp 
-                  ? 'Registrieren Sie sich für Treuepunkte und mehr'
+                {isSignUp
+                  ? 'Registrieren Sie sich für exklusive Angebote'
                   : 'Melden Sie sich an, um fortzufahren'}
               </Text>
             </View>
@@ -314,7 +306,7 @@ export default function ProfileScreen() {
               <Text style={styles.benefitsTitle}>Ihre Vorteile:</Text>
               <View style={styles.benefitItem}>
                 <Ionicons name="gift-outline" size={20} color="#FF0000" />
-                <Text style={styles.benefitText}>Treuepunkte sammeln</Text>
+                <Text style={styles.benefitText}>Exklusive Angebote erhalten</Text>
               </View>
               <View style={styles.benefitItem}>
                 <Ionicons name="heart-outline" size={20} color="#FF0000" />
@@ -373,40 +365,35 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Loyalty Card */}
-        <View style={styles.loyaltyCard}>
-          <View style={styles.loyaltyHeader}>
-            <Text style={styles.loyaltyTitle}>Treuepunkte</Text>
-            <View style={[styles.loyaltyBadge, { backgroundColor: getLoyaltyStatus().color }]}>
-              <Text style={styles.loyaltyLevel}>{getLoyaltyStatus().level}</Text>
-            </View>
+        {/* Social Media Card */}
+        <View style={styles.socialCard}>
+          <Text style={styles.socialTitle}>Folgen Sie uns</Text>
+          <Text style={styles.socialSubtitle}>Bleiben Sie auf dem Laufenden</Text>
+
+          <View style={styles.socialButtons}>
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => Linking.openURL('https://facebook.com/grillmaier149')}
+            >
+              <Ionicons name="logo-facebook" size={28} color="#1877F2" />
+              <Text style={styles.socialButtonText}>Facebook</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => Linking.openURL('https://instagram.com/grillmaier149')}
+            >
+              <Ionicons name="logo-instagram" size={28} color="#E4405F" />
+              <Text style={styles.socialButtonText}>Instagram</Text>
+            </TouchableOpacity>
           </View>
-          
-          <Text style={styles.loyaltyPoints}>
-            {profile?.loyalty_points ? parseFloat(profile.loyalty_points).toFixed(0) : '0'}
-          </Text>
-          <Text style={styles.loyaltyPointsLabel}>Punkte</Text>
-          
-          {getLoyaltyStatus().nextLevel && (
-            <View style={styles.loyaltyProgress}>
-              <View style={styles.progressBar}>
-                <View 
-                  style={[
-                    styles.progressFill, 
-                    { 
-                      width: `${(parseFloat(profile?.loyalty_points || '0') / getLoyaltyStatus().nextLevel!) * 100}%` 
-                    }
-                  ]} 
-                />
-              </View>
-              <Text style={styles.progressText}>
-                Noch {getLoyaltyStatus().nextLevel! - parseFloat(profile?.loyalty_points || '0')} Punkte bis {
-                  getLoyaltyStatus().nextLevel === 50 ? 'Bronze' :
-                  getLoyaltyStatus().nextLevel === 200 ? 'Silber' : 'Gold'
-                }
-              </Text>
-            </View>
-          )}
+
+          <View style={styles.socialInfo}>
+            <Ionicons name="information-circle-outline" size={16} color="#666" />
+            <Text style={styles.socialInfoText}>
+              Aktuelle Angebote, Events und Einblicke hinter die Kulissen
+            </Text>
+          </View>
         </View>
 
         {/* Quick Actions */}
@@ -685,7 +672,7 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
-  loyaltyCard: {
+  socialCard: {
     backgroundColor: 'white',
     margin: 16,
     padding: 20,
@@ -696,57 +683,46 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  loyaltyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  loyaltyTitle: {
+  socialTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
+    marginBottom: 4,
   },
-  loyaltyBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  loyaltyLevel: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  loyaltyPoints: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#FF0000',
-    textAlign: 'center',
-  },
-  loyaltyPointsLabel: {
+  socialSubtitle: {
     fontSize: 14,
     color: '#666',
-    textAlign: 'center',
+    marginBottom: 20,
+  },
+  socialButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     marginBottom: 16,
   },
-  loyaltyProgress: {
+  socialButton: {
+    alignItems: 'center',
+    padding: 12,
+    flex: 1,
+  },
+  socialButtonText: {
     marginTop: 8,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
   },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 4,
-    overflow: 'hidden',
+  socialInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    padding: 12,
+    borderRadius: 8,
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#FF0000',
-  },
-  progressText: {
+  socialInfoText: {
+    flex: 1,
+    marginLeft: 8,
     fontSize: 12,
-    color: '#999',
-    textAlign: 'center',
-    marginTop: 8,
+    color: '#666',
+    lineHeight: 18,
   },
   quickActions: {
     flexDirection: 'row',

@@ -37,10 +37,6 @@ export default function App() {
               // Navigate to events screen
               navigationRef.current.navigate('Events');
               break;
-            case 'points_earned':
-              // Navigate to profile screen
-              navigationRef.current.navigate('Profile');
-              break;
             default:
               // Navigate to home by default
               navigationRef.current.navigate('Home');

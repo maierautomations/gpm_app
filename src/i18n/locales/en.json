@@ -51,8 +51,6 @@
   },
   "profile": {
     "title": "My Profile",
-    "loyaltyPoints": "Loyalty Points",
-    "collectPoints": "Collect Points",
     "favorites": "My Favorites",
     "settings": "Settings",
     "logout": "Logout",
@@ -67,11 +65,11 @@
     "savings": "You save",
     "specialPrice": "Special Price"
   },
-  "loyalty": {
-    "scanCode": "Scan Code",
-    "enterCode": "Enter Code",
-    "pointsEarned": "Points Earned",
-    "pointsRedeemed": "Points Redeemed",
-    "history": "History"
+  "social": {
+    "followUs": "Follow Us",
+    "facebook": "Facebook",
+    "instagram": "Instagram",
+    "stayUpdated": "Stay Updated",
+    "dailyUpdates": "Daily photos and offers"
   }
 }
