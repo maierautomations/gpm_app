@@ -54,23 +54,16 @@ export default function EventsScreen() {
     try {
       const upcomingEvents = await EventsService.getEvents();
       const pastEventsList = await EventsService.getPastEvents();
-      
-      // If no events in database, use mock data for demonstration
-      if (upcomingEvents.length === 0 && pastEventsList.length === 0) {
-        const mockEvents = EventsService.getMockEvents();
-        setEvents(mockEvents);
-        generateMarkedDates([...mockEvents]);
-      } else {
-        setEvents(upcomingEvents);
-        setPastEvents(pastEventsList);
-        generateMarkedDates([...upcomingEvents, ...pastEventsList]);
-      }
+
+      setEvents(upcomingEvents);
+      setPastEvents(pastEventsList);
+      generateMarkedDates([...upcomingEvents, ...pastEventsList]);
     } catch (error) {
       console.error('Error loading events:', error);
-      // Use mock data as fallback
-      const mockEvents = EventsService.getMockEvents();
-      setEvents(mockEvents);
-      generateMarkedDates([...mockEvents]);
+      // In case of error, just set empty arrays
+      setEvents([]);
+      setPastEvents([]);
+      generateMarkedDates([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
