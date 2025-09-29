@@ -8,14 +8,15 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ### What's IN v1:
 
-- ✅ Full menu system with 125+ items
-- ✅ Weekly offers with rotation system
+- ✅ Full menu system with 125+ items and detail modals
+- ✅ Weekly offers with rotation system (8 themes, 50+ items)
 - ✅ Events calendar with reminders
 - ✅ AI chatbot (Google Gemini)
-- ✅ Photo gallery
+- ✅ Photo gallery (3 categories)
 - ✅ Push notifications (3 types: offers, events, updates)
 - ✅ Social media integration (Facebook & Instagram @grillmaier149)
 - ✅ User authentication & profiles
+- ✅ Settings screens (notifications, language, help, about)
 
 ### What's DEFERRED to v2:
 
@@ -25,6 +26,19 @@ This file provides guidance to Claude Code when working with code in this reposi
 - ⏳ Full i18n implementation
 
 **Note**: All loyalty infrastructure remains in the database but has been removed from the UI to avoid showing non-functional features in v1.
+
+## Recent Updates (Updated: 2025-09-23)
+
+### Latest Fixes
+- **Events Display Fixed**: Resolved issue where events weren't showing due to RLS policies and date format mismatch
+- **Date Comparison**: Fixed date filtering to use YYYY-MM-DD format instead of ISO timestamps
+- **Mock Data Removed**: Cleaned up mock event data that was overriding real database content
+
+### Recent Features
+- **Expo SDK 54**: Upgraded for better Expo Go compatibility
+- **Menu Detail Modals**: Full item descriptions with allergen display
+- **Hybrid Offers System**: Supports both linked menu items and custom combos
+- **Settings Screens**: Complete user preference management with AsyncStorage
 
 ## Common Development Commands
 
@@ -79,7 +93,8 @@ This is a React Native Expo app for Grill-Partner Maier, a German restaurant in 
 
    - Feature services located in `src/features/[feature]/services/`
    - Core services (Supabase client) in `src/services/supabase/`
-   - Each domain has its own service (MenuService, EventsService, ChatService, OffersService, GalleryService, LoyaltyService, NotificationService)
+   - Each domain has its own service (MenuService, EventsService, ChatService, OffersService, GalleryService, NotificationService)
+   - **EventsService**: Fixed date comparisons to use YYYY-MM-DD format
    - **GalleryService**: Handles photo loading, categorization, and real-time updates
    - **NotificationService**: Manages push tokens, permissions, and notification handling
    - Services return typed data from `database.types.ts`
@@ -118,7 +133,7 @@ src/
 │   ├── events/       # Events calendar with favorites
 │   ├── chat/         # AI chatbot with Gemini
 │   ├── home/         # Dashboard with quick actions
-│   ├── profile/      # User profile and loyalty
+│   ├── profile/      # User profile and social media
 │   ├── offers/       # Weekly offers system (OffersService)
 │   ├── gallery/      # Photo gallery with categories
 │   ├── settings/     # User preferences and app settings
@@ -170,8 +185,10 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 **events**
 
 - Event calendar for seasonal catering (May-September)
+- `date`: string (YYYY-MM-DD format)
 - `offerings`: string[] (what's available at event)
 - `location`: string (can be different from restaurant)
+- **Important**: RLS enabled with public read policy
 
 **chat_messages**
 
@@ -230,7 +247,7 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 - `device_info`: device metadata
 - `is_active`: token validity status
 - `last_used`: automatic deactivation after 60 days
-- `notification_settings`: removed pointsEarned, only weeklyOffers, eventReminders, appUpdates
+- `notification_settings`: weeklyOffers, eventReminders, appUpdates only
 
 **notification_history** (sent notifications log - ✅ FULLY IMPLEMENTED)
 
@@ -248,6 +265,12 @@ For detailed structure documentation, see `FOLDER_STRUCTURE.md`.
 - `scheduled_for`: when to send
 - `target_audience`: who receives it
 - `sent`: processing status
+
+### Important RLS Policies
+
+- **events table**: Requires public read policy for events to display
+- **profiles table**: Users can only read/write their own profile
+- **push_tokens table**: Users can only manage their own tokens
 
 ## Settings & User Preferences - ✅ FULLY IMPLEMENTED
 
@@ -340,6 +363,7 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 - **Offers Integration**: "🔥 Burger Woche" filter tab in MenuScreen
 - Special price display with strikethrough and savings badge
 - Orange theme (#FF6B00) for offer items
+- **Detail Modal**: Full item descriptions with allergen information
 
 ### Angebotskalender (Weekly Offers) - ✅ FULLY IMPLEMENTED
 
@@ -371,6 +395,7 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 - Past/upcoming event separation with visual styling
 - **View Persistence**: Calendar/list preference maintained during session
 - **Event Markers**: Dots on calendar dates indicate events (red for upcoming, gray for past)
+- **Date Format**: Uses YYYY-MM-DD for proper comparison with database
 
 ### Home Screen Hub
 
@@ -389,6 +414,7 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 - Quick action buttons for menu, chat, events
 - Favorites management (menu items & events)
 - Settings access with stack navigation
+- **No Loyalty UI**: Points display removed for v1 release
 
 ### Photo Gallery
 
@@ -442,9 +468,9 @@ The app includes a complete push notification system with automation and admin c
 
 #### ✅ FULLY IMPLEMENTED FEATURES
 
-- **Menu System**: 125+ items with categories, search, favorites filter
+- **Menu System**: 125+ items with categories, search, favorites, detail modals
 - **Weekly Offers System**: 8 rotating themes, 50+ items (hybrid linked/custom)
-- **Events Calendar**: List/calendar views, favorites, date selection
+- **Events Calendar**: List/calendar views, favorites, date selection, RLS policies fixed
 - **AI Chatbot**: Google Gemini integration, bilingual, chat history
 - **Photo Gallery**: 3 categories, full-screen viewer, share functionality
 - **Push Notifications**: Complete system with automation and admin panel
@@ -457,7 +483,7 @@ The app includes a complete push notification system with automation and admin c
 
 - **OffersService**: Handles both linked menu items and custom combos
 - **MenuService**: Menu loading, categories, real-time updates
-- **EventsService**: Event management with favorites
+- **EventsService**: Event management with favorites, proper date filtering
 - **ChatService**: Message persistence and Gemini API integration
 - **GalleryService**: Photo categorization and featured system
 - **AuthService**: User authentication and profile management
@@ -470,7 +496,7 @@ The app includes a complete push notification system with automation and admin c
 - **Hybrid Offers**: Both menu items and custom combo support
 - **User Data**: Profiles, favorites, chat history, loyalty points (DB only)
 - **Push Notifications**: Token management, history tracking, scheduled queue
-- **RLS Policies**: Security configured for all tables
+- **RLS Policies**: Security configured for all tables (events table requires public read policy)
 
 #### 🔮 FUTURE FEATURES (v2)
 
@@ -492,6 +518,7 @@ The app includes a complete push notification system with automation and admin c
 9. **Weekly Rotation**: ✅ Implemented - SQL functions for week switching
 10. **Docker Edge Functions**: ✅ Bypassed - Dashboard deployment without Docker
 11. **Push Notifications**: ✅ Implemented - Complete system with automation
+12. **Events Not Displaying**: ✅ Fixed - RLS policies added, date format corrected to YYYY-MM-DD
 
 ## Testing & Development Notes
 
@@ -500,7 +527,6 @@ The app includes a complete push notification system with automation and admin c
   - Format code: `npx prettier --write src/`
 - **Testing**: No test framework configured yet
 - **Mobile Testing**: Use Expo Go app
-- **Mock Data**: Available in EventsService.getMockEvents()
 - **Backend**: Development uses real Supabase instance (no local emulator)
 - **SQL Files**:
   - `supabase-weekly-rotation.sql` - Weekly rotation functions
@@ -510,6 +536,7 @@ The app includes a complete push notification system with automation and admin c
   - `docs/push-notifications-complete-guide.md` - Full notification system documentation
   - `docs/deploy-via-dashboard.md` - Edge Function deployment guide
   - `docs/project_plan.md` - Overall project status and timeline
+  - `docs/FOLDER_STRUCTURE.md` - Detailed folder structure
 
 ## Weekly Offers Management
 
@@ -580,4 +607,3 @@ Default language is German, with English as secondary option in chatbot.
 3. **Contextual Placement**: Features where users expect them (social media in profile, offers with menu)
 4. **Visual First**: Gallery preview attracts on home screen
 5. **Focus on Working Features**: v1 shows only fully implemented features, no placeholders
-- do not test on your own. Let me do testing
