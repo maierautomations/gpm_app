@@ -40,7 +40,9 @@ export default function MenuItemDetailModal({
   const specialPrice = offerPrice ? parseFloat(offerPrice) : null;
 
   // Parse allergens using the same logic as enhancedContextProvider
-  const formatAllergens = (allergens: any): string[] => {
+  type AllergenData = string[] | Record<string, boolean> | null | undefined;
+
+  const formatAllergens = (allergens: AllergenData): string[] => {
     if (!allergens) return [];
     if (Array.isArray(allergens)) return allergens;
     if (typeof allergens === 'object') {

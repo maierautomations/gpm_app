@@ -3,6 +3,7 @@ import { Database } from '../../../services/supabase/database.types';
 import MenuService from '../../menu/services/menuService';
 import ChatMessageService from './chatMessageService';
 import ContextManager from './contextManager';
+import { logger } from '../../../utils/logger';
 
 type ChatMessage = Database['public']['Tables']['chat_messages']['Row'];
 
@@ -83,7 +84,7 @@ export class ChatServiceGemini {
       // Use ContextManager's optimized context based on query
       return await ContextManager.getOptimizedContext(query);
     } catch (error) {
-      console.error('Error fetching enhanced context:', error);
+      logger.error('Error fetching enhanced context:', error);
       // Fallback to basic context
       return await ContextManager.getCompactContext();
     }
@@ -131,7 +132,7 @@ export class ChatServiceGemini {
 
       if (!response.ok) {
         const error = await response.text();
-        console.error('Gemini API error:', error);
+        logger.error('Gemini API error:', error);
         throw new Error('Failed to get response from AI');
       }
 
@@ -153,7 +154,7 @@ export class ChatServiceGemini {
 
       return fullResponse;
     } catch (error) {
-      console.error('ChatService.sendMessage error:', error);
+      logger.error('ChatService.sendMessage error:', error);
       
       // Fallback response
       const language = this.detectLanguage(message);

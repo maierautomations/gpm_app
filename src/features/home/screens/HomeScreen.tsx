@@ -19,6 +19,7 @@ import OffersService, { WeeklyOffer } from '../../offers/services/offersService'
 import { Database } from '../../../services/supabase/database.types';
 import { useNavigation } from '@react-navigation/native';
 import GalleryPreview from '../../gallery/components/GalleryPreview';
+import { logger } from '../../../utils/logger';
 
 type MenuItem = Database['public']['Tables']['menu_items']['Row'];
 
@@ -58,7 +59,7 @@ export default function HomeScreen() {
       // For now, show first 3 items as "specials"
       setSpecialOffers(items.slice(0, 3));
     } catch (error) {
-      console.error('Error loading home data:', error);
+      logger.error('Error loading home data:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);

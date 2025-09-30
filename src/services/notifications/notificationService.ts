@@ -3,13 +3,14 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../supabase/client';
-import { 
-  NotificationSettings, 
-  PushToken, 
+import {
+  NotificationSettings,
+  PushToken,
   NotificationData,
   NotificationHistory,
-  NotificationType 
+  NotificationType
 } from './types';
+import { logger } from '../../utils/logger';
 
 class NotificationService {
   private static instance: NotificationService;
@@ -49,7 +50,7 @@ class NotificationService {
     try {
       // Check if we're on a physical device
       if (!Device.isDevice) {
-        console.log('Push notifications only work on physical devices');
+        logger.log('Push notifications only work on physical devices');
         return null;
       }
 
@@ -64,14 +65,14 @@ class NotificationService {
       }
 
       if (finalStatus !== 'granted') {
-        console.log('Failed to get push token for push notification!');
+        logger.log('Failed to get push token for push notification!');
         return null;
       }
 
       // Get the token
       const projectId = process.env.EXPO_PUBLIC_PROJECT_ID;
       if (!projectId) {
-        console.error('EXPO_PUBLIC_PROJECT_ID not found in environment variables');
+        logger.error('EXPO_PUBLIC_PROJECT_ID not found in environment variables');
         throw new Error('Project ID not configured. Please set EXPO_PUBLIC_PROJECT_ID in your .env.local file.');
       }
 
@@ -97,7 +98,7 @@ class NotificationService {
 
       return token;
     } catch (error) {
-      console.error('Error registering for push notifications:', error);
+      logger.error('Error registering for push notifications:', error);
       return null;
     }
   }
@@ -133,12 +134,12 @@ class NotificationService {
         });
 
       if (error) {
-        console.error('Error saving push token:', error);
+        logger.error('Error saving push token:', error);
       } else {
-        console.log('Push token saved successfully');
+        logger.log('Push token saved successfully');
       }
     } catch (error) {
-      console.error('Error in savePushToken:', error);
+      logger.error('Error in savePushToken:', error);
     }
   }
 
@@ -146,7 +147,7 @@ class NotificationService {
     // Handle notifications when app is in foreground
     this.notificationListener = Notifications.addNotificationReceivedListener(
       notification => {
-        console.log('Notification received:', notification);
+        logger.log('Notification received:', notification);
         this.handleNotificationReceived(notification);
       }
     );
@@ -154,7 +155,7 @@ class NotificationService {
     // Handle notification responses (when user taps on notification)
     this.responseListener = Notifications.addNotificationResponseReceivedListener(
       response => {
-        console.log('Notification response:', response);
+        logger.log('Notification response:', response);
         this.handleNotificationResponse(response);
       }
     );
@@ -192,7 +193,7 @@ class NotificationService {
     this.navigateBasedOnNotification(data);
   }
 
-  private navigateBasedOnNotification(data: any) {
+  private navigateBasedOnNotification(data: NotificationPayload) {
     if (!data) return;
 
     // This will be handled in App.tsx or navigation context
@@ -227,11 +228,11 @@ class NotificationService {
           .eq('token', this.pushToken);
 
         if (error) {
-          console.error('Error updating notification settings:', error);
+          logger.error('Error updating notification settings:', error);
         }
       }
     } catch (error) {
-      console.error('Error in updateNotificationSettings:', error);
+      logger.error('Error in updateNotificationSettings:', error);
     }
   }
 
@@ -245,13 +246,13 @@ class NotificationService {
         .limit(50);
 
       if (error) {
-        console.error('Error fetching notification history:', error);
+        logger.error('Error fetching notification history:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Error in getNotificationHistory:', error);
+      logger.error('Error in getNotificationHistory:', error);
       return [];
     }
   }
@@ -264,10 +265,10 @@ class NotificationService {
         .eq('id', notificationId);
 
       if (error) {
-        console.error('Error marking notification as read:', error);
+        logger.error('Error marking notification as read:', error);
       }
     } catch (error) {
-      console.error('Error in markNotificationAsRead:', error);
+      logger.error('Error in markNotificationAsRead:', error);
     }
   }
 
@@ -278,10 +279,10 @@ class NotificationService {
         .insert(notification);
 
       if (error) {
-        console.error('Error saving to notification history:', error);
+        logger.error('Error saving to notification history:', error);
       }
     } catch (error) {
-      console.error('Error in saveToHistory:', error);
+      logger.error('Error in saveToHistory:', error);
     }
   }
 
@@ -300,7 +301,7 @@ class NotificationService {
 
       return id;
     } catch (error) {
-      console.error('Error scheduling notification:', error);
+      logger.error('Error scheduling notification:', error);
       return null;
     }
   }
@@ -309,7 +310,7 @@ class NotificationService {
     try {
       await Notifications.cancelScheduledNotificationAsync(notificationId);
     } catch (error) {
-      console.error('Error canceling notification:', error);
+      logger.error('Error canceling notification:', error);
     }
   }
 
@@ -317,7 +318,7 @@ class NotificationService {
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
     } catch (error) {
-      console.error('Error canceling all notifications:', error);
+      logger.error('Error canceling all notifications:', error);
     }
   }
 

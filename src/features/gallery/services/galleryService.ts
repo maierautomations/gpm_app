@@ -1,5 +1,6 @@
 import { supabase } from '../../../services/supabase/client';
 import { Database } from '../../../services/supabase/database.types';
+import { logger } from '../../../utils/logger';
 
 type GalleryPhoto = Database['public']['Tables']['gallery_photos']['Row'];
 type PhotoCategory = 'restaurant' | 'events' | 'eis';
@@ -18,13 +19,13 @@ export class GalleryService {
         .limit(6);
 
       if (error) {
-        console.error('Error fetching featured photos:', error);
+        logger.error('Error fetching featured photos:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Error in getFeaturedPhotos:', error);
+      logger.error('Error in getFeaturedPhotos:', error);
       return [];
     }
   }
@@ -41,13 +42,13 @@ export class GalleryService {
         .order('display_order', { ascending: true });
 
       if (error) {
-        console.error(`Error fetching photos for category ${category}:`, error);
+        logger.error(`Error fetching photos for category ${category}:`, error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error(`Error in getPhotosByCategory for ${category}:`, error);
+      logger.error(`Error in getPhotosByCategory for ${category}:`, error);
       return [];
     }
   }
@@ -64,7 +65,7 @@ export class GalleryService {
         .order('display_order', { ascending: true });
 
       if (error) {
-        console.error('Error fetching all photos:', error);
+        logger.error('Error fetching all photos:', error);
         return { restaurant: [], events: [], eis: [] };
       }
 
@@ -84,7 +85,7 @@ export class GalleryService {
 
       return groupedPhotos;
     } catch (error) {
-      console.error('Error in getAllPhotos:', error);
+      logger.error('Error in getAllPhotos:', error);
       return { restaurant: [], events: [], eis: [] };
     }
   }
@@ -100,7 +101,7 @@ export class GalleryService {
         .order('category');
 
       if (error) {
-        console.error('Error fetching category counts:', error);
+        logger.error('Error fetching category counts:', error);
         return { restaurant: 0, events: 0, eis: 0 };
       }
 
@@ -119,7 +120,7 @@ export class GalleryService {
 
       return counts;
     } catch (error) {
-      console.error('Error in getCategoryCounts:', error);
+      logger.error('Error in getCategoryCounts:', error);
       return { restaurant: 0, events: 0, eis: 0 };
     }
   }

@@ -1,5 +1,7 @@
 import { supabase } from '../../../services/supabase/client';
 import { Database } from '../../../services/supabase/database.types';
+import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { logger } from '../../../utils/logger';
 
 type MenuItem = Database['public']['Tables']['menu_items']['Row'];
 
@@ -20,13 +22,13 @@ export class MenuService {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching menu items:', error);
+        logger.error('Error fetching menu items:', error);
         throw error;
       }
 
       return data || [];
     } catch (error) {
-      console.error('MenuService.getMenuItems error:', error);
+      logger.error('MenuService.getMenuItems error:', error);
       return [];
     }
   }
@@ -40,13 +42,13 @@ export class MenuService {
         .single();
 
       if (error) {
-        console.error('Error fetching menu item:', error);
+        logger.error('Error fetching menu item:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('MenuService.getMenuItem error:', error);
+      logger.error('MenuService.getMenuItem error:', error);
       return null;
     }
   }
@@ -61,13 +63,13 @@ export class MenuService {
         .order('name', { ascending: true });
 
       if (error) {
-        console.error('Error searching menu items:', error);
+        logger.error('Error searching menu items:', error);
         throw error;
       }
 
       return data || [];
     } catch (error) {
-      console.error('MenuService.searchMenuItems error:', error);
+      logger.error('MenuService.searchMenuItems error:', error);
       return [];
     }
   }
@@ -82,7 +84,7 @@ export class MenuService {
         .single();
 
       if (fetchError) {
-        console.error('Error fetching profile:', fetchError);
+        logger.error('Error fetching profile:', fetchError);
         return false;
       }
 
@@ -108,13 +110,13 @@ export class MenuService {
         .eq('id', userId);
 
       if (updateError) {
-        console.error('Error updating favorites:', updateError);
+        logger.error('Error updating favorites:', updateError);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('MenuService.toggleFavorite error:', error);
+      logger.error('MenuService.toggleFavorite error:', error);
       return false;
     }
   }
@@ -129,7 +131,7 @@ export class MenuService {
         .single();
 
       if (profileError) {
-        console.error('Error fetching profile:', profileError);
+        logger.error('Error fetching profile:', profileError);
         return [];
       }
 
@@ -149,18 +151,18 @@ export class MenuService {
         .in('id', favoriteIds);
 
       if (error) {
-        console.error('Error fetching favorite items:', error);
+        logger.error('Error fetching favorite items:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('MenuService.getFavorites error:', error);
+      logger.error('MenuService.getFavorites error:', error);
       return [];
     }
   }
 
-  static subscribeToMenuUpdates(callback: (payload: any) => void) {
+  static subscribeToMenuUpdates(callback: (payload: RealtimePostgresChangesPayload<MenuItem>) => void) {
     return supabase
       .channel('menu-updates')
       .on(
@@ -191,13 +193,13 @@ export class MenuService {
         .single();
 
       if (weekError) {
-        console.error('Error fetching active week:', weekError);
+        logger.error('Error fetching active week:', weekError);
         return null;
       }
 
       return activeWeek;
     } catch (error) {
-      console.error('MenuService.getSpecialOffers error:', error);
+      logger.error('MenuService.getSpecialOffers error:', error);
       return null;
     }
   }
@@ -211,7 +213,7 @@ export class MenuService {
         .eq('is_available', true);
 
       if (error) {
-        console.error('Error fetching categories:', error);
+        logger.error('Error fetching categories:', error);
         return [];
       }
 
@@ -219,7 +221,7 @@ export class MenuService {
       const categories = [...new Set(data?.map(item => item.category) || [])];
       return categories.sort();
     } catch (error) {
-      console.error('MenuService.getCategories error:', error);
+      logger.error('MenuService.getCategories error:', error);
       return [];
     }
   }

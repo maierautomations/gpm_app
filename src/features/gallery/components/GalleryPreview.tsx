@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import GalleryService from '../services/galleryService';
 import { Database } from '../../../services/supabase/database.types';
 import { useNavigation } from '@react-navigation/native';
+import { logger } from '../../../utils/logger';
 
 type GalleryPhoto = Database['public']['Tables']['gallery_photos']['Row'];
 
@@ -47,7 +48,7 @@ export default function GalleryPreview({ onViewAll }: GalleryPreviewProps) {
       const featuredPhotos = await GalleryService.getFeaturedPhotos();
       setPhotos(featuredPhotos);
     } catch (error) {
-      console.error('Error loading featured photos:', error);
+      logger.error('Error loading featured photos:', error);
     } finally {
       setLoading(false);
     }
@@ -123,7 +124,7 @@ export default function GalleryPreview({ onViewAll }: GalleryPreviewProps) {
             <View style={styles.photoOverlay}>
               <View style={styles.categoryBadge}>
                 <Text style={styles.categoryText}>
-                  {GalleryService.getCategoryDisplayName(photo.category as any)}
+                  {GalleryService.getCategoryDisplayName(photo.category as 'restaurant' | 'events' | 'eis')}
                 </Text>
               </View>
               

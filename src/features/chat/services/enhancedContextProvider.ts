@@ -1,7 +1,9 @@
 import MenuService from '../../menu/services/menuService';
 import { Database } from '../../../services/supabase/database.types';
+import { logger } from '../../../utils/logger';
 
 type MenuItem = Database['public']['Tables']['menu_items']['Row'];
+type AngebotskalenderItem = Database['public']['Tables']['angebotskalender_items']['Row'];
 type WeeklyOffer = Database['public']['Tables']['angebotskalender_weeks']['Row'] & {
   angebotskalender_items: Array<{
     special_price: string;
@@ -44,8 +46,10 @@ interface EnhancedMenuContext {
   };
 }
 
+type AllergenData = string[] | Record<string, boolean> | null | undefined;
+
 export class EnhancedContextProvider {
-  private static formatAllergens(allergens: any): string[] {
+  private static formatAllergens(allergens: AllergenData): string[] {
     if (!allergens) return [];
     if (Array.isArray(allergens)) return allergens;
     if (typeof allergens === 'object') {
@@ -114,7 +118,11 @@ export class EnhancedContextProvider {
       // Add special offers information
       let offersContext = '';
       if (specialOffers && specialOffers.angebotskalender_items?.length > 0) {
-        const offerItems = specialOffers.angebotskalender_items.map((offerItem: any) => {
+        type OfferItemWithMenu = AngebotskalenderItem & {
+          menu_item: MenuItem;
+        };
+
+        const offerItems = specialOffers.angebotskalender_items.map((offerItem: OfferItemWithMenu) => {
           const menuItem = offerItem.menu_item as MenuItem;
           const originalPrice = parseFloat(menuItem.price);
           const specialPrice = parseFloat(offerItem.special_price);
@@ -225,7 +233,7 @@ WICHTIGE HINWEISE:
 - Saisonale Eisspezialitäten verfügbar
 - Familienbetrieb seit 1968 - Qualität und Tradition`;
     } catch (error) {
-      console.error('Error generating enhanced context:', error);
+      logger.error('Error generating enhanced context:', error);
       return `FEHLER: Kontext kann nicht geladen werden. Bitte wenden Sie sich direkt an das Restaurant.
 📞 Telefon: +49 431 123456
 📍 Adresse: Langer Rehm 25, 24149 Kiel-Dietrichsdorf`;

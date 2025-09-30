@@ -17,6 +17,7 @@ import { Calendar } from 'react-native-calendars';
 import EventsService from '../services/eventsService';
 import { Database } from '../../../services/supabase/database.types';
 import { useUserStore } from '../../../stores/userStore';
+import { logger } from '../../../utils/logger';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -59,7 +60,7 @@ export default function EventsScreen() {
       setPastEvents(pastEventsList);
       generateMarkedDates([...upcomingEvents, ...pastEventsList]);
     } catch (error) {
-      console.error('Error loading events:', error);
+      logger.error('Error loading events:', error);
       // In case of error, just set empty arrays
       setEvents([]);
       setPastEvents([]);
@@ -71,8 +72,15 @@ export default function EventsScreen() {
   };
 
   const generateMarkedDates = (allEvents: Event[]) => {
-    const marked: any = {};
-    
+    type MarkedDate = {
+      marked: boolean;
+      dotColor: string;
+      activeOpacity: number;
+      selectedColor: string;
+      events: Event[];
+    };
+    const marked: Record<string, MarkedDate> = {};
+
     allEvents.forEach(event => {
       const dateString = event.date?.split('T')[0]; // Get YYYY-MM-DD format
       if (dateString) {
@@ -96,7 +104,7 @@ export default function EventsScreen() {
       const favorites = await EventsService.getFavoriteEvents(user.id);
       setFavoriteEvents(favorites.map(event => event.id));
     } catch (error) {
-      console.error('Error loading favorite events:', error);
+      logger.error('Error loading favorite events:', error);
     }
   };
 

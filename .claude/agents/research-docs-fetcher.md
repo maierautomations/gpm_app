@@ -2,7 +2,7 @@
 name: research-agent
 description: Use proactively for researching topics. Specialist for gathering documentation, technical specifications, and reference materials from the web.
 tools: WebFetch, mcp_firecrawl-mcp_firecrawl_scrape, mcp_firecrawl-mcp_firecrawl_search, Write, Read, Glob, Bash
-model: sonnet
+model: inherit
 color: purple
 ---
 

@@ -1,5 +1,7 @@
 import { supabase } from '../../../services/supabase/client';
 import { Database } from '../../../services/supabase/database.types';
+import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { logger } from '../../../utils/logger';
 
 type AngebotskalenderWeek = Database['public']['Tables']['angebotskalender_weeks']['Row'];
 type AngebotskalenderItem = Database['public']['Tables']['angebotskalender_items']['Row'];
@@ -41,12 +43,16 @@ export class OffersService {
         .single();
 
       if (error || !data) {
-        console.error('Error fetching current offers:', error);
+        logger.error('Error fetching current offers:', error);
         return null;
       }
 
       // Transform the data for easier consumption
-      const items: OfferItem[] = data.angebotskalender_items?.map((item: any) => {
+      type OfferItemRow = AngebotskalenderItem & {
+        menu_item?: MenuItem;
+      };
+
+      const items: OfferItem[] = data.angebotskalender_items?.map((item: OfferItemRow) => {
         const isCustom = !item.menu_item_id || !item.menu_item;
         const originalPrice = isCustom ? item.base_price : item.menu_item?.price;
         
@@ -78,7 +84,7 @@ export class OffersService {
         items
       };
     } catch (error) {
-      console.error('OffersService.getCurrentWeekOffers error:', error);
+      logger.error('OffersService.getCurrentWeekOffers error:', error);
       return null;
     }
   }
@@ -101,12 +107,16 @@ export class OffersService {
         .single();
 
       if (error || !data) {
-        console.error('Error fetching week offers:', error);
+        logger.error('Error fetching week offers:', error);
         return null;
       }
 
       // Transform the data
-      const items: OfferItem[] = data.angebotskalender_items?.map((item: any) => {
+      type OfferItemRow = AngebotskalenderItem & {
+        menu_item?: MenuItem;
+      };
+
+      const items: OfferItem[] = data.angebotskalender_items?.map((item: OfferItemRow) => {
         const isCustom = !item.menu_item_id || !item.menu_item;
         const originalPrice = isCustom ? item.base_price : item.menu_item?.price;
         
@@ -138,7 +148,7 @@ export class OffersService {
         items
       };
     } catch (error) {
-      console.error('OffersService.getOffersByWeek error:', error);
+      logger.error('OffersService.getOffersByWeek error:', error);
       return null;
     }
   }
@@ -154,13 +164,13 @@ export class OffersService {
         .order('week_number', { ascending: true });
 
       if (error) {
-        console.error('Error fetching all weeks:', error);
+        logger.error('Error fetching all weeks:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('OffersService.getAllWeeks error:', error);
+      logger.error('OffersService.getAllWeeks error:', error);
       return [];
     }
   }
@@ -213,7 +223,7 @@ export class OffersService {
   /**
    * Subscribe to offer updates
    */
-  static subscribeToOfferUpdates(callback: (payload: any) => void) {
+  static subscribeToOfferUpdates(callback: (payload: RealtimePostgresChangesPayload<WeeklyOffer>) => void) {
     return supabase
       .channel('offer-updates')
       .on(

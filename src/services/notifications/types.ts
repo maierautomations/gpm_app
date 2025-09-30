@@ -10,12 +10,33 @@ export interface NotificationSettings {
   appUpdates: boolean;
 }
 
+export interface DeviceInfo {
+  model?: string;
+  osName?: string;
+  osVersion?: string;
+  appVersion?: string;
+}
+
+export interface NotificationPayload {
+  screen?: string;
+  itemId?: string;
+  eventId?: string;
+  offerId?: string;
+  [key: string]: unknown;
+}
+
+export interface TargetAudience {
+  userIds?: string[];
+  allUsers?: boolean;
+  testUsers?: boolean;
+}
+
 export interface PushToken {
   id?: string;
   user_id: string;
   token: string;
   platform: 'ios' | 'android' | 'web';
-  device_info?: any;
+  device_info?: DeviceInfo;
   notification_settings?: NotificationSettings;
   created_at?: string;
   updated_at?: string;
@@ -25,7 +46,7 @@ export interface NotificationData {
   type: NotificationType;
   title: string;
   body: string;
-  data?: any;
+  data?: NotificationPayload;
   image_url?: string;
   badge?: number;
   sound?: string;
@@ -38,7 +59,7 @@ export interface NotificationHistory {
   type?: NotificationType;
   title: string;
   body: string;
-  data?: any;
+  data?: NotificationPayload;
   sent_at?: string;
   read?: boolean;
   clicked?: boolean;
@@ -49,9 +70,9 @@ export interface ScheduledNotification {
   type: NotificationType;
   title: string;
   body: string;
-  data?: any;
+  data?: NotificationPayload;
   scheduled_for: string;
-  target_audience?: any;
+  target_audience?: TargetAudience;
   sent?: boolean;
   created_at?: string;
 }

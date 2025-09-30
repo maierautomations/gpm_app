@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '../../../utils/logger';
 import {
   View,
   Text,
@@ -44,7 +45,7 @@ export default function NotificationSettingsScreen({ navigation }: { navigation:
         setSettings(JSON.parse(saved));
       }
     } catch (error) {
-      console.error('Error loading notification settings:', error);
+      logger.error('Error loading notification settings:', error);
     } finally {
       setLoading(false);
     }
@@ -55,7 +56,7 @@ export default function NotificationSettingsScreen({ navigation }: { navigation:
       const { status } = await Notifications.getPermissionsAsync();
       setPermissionStatus(status);
     } catch (error) {
-      console.error('Error checking permission status:', error);
+      logger.error('Error checking permission status:', error);
     }
   };
 
@@ -66,7 +67,7 @@ export default function NotificationSettingsScreen({ navigation }: { navigation:
       const history = await notificationService.getNotificationHistory(user.id);
       setNotificationHistory(history.slice(0, 5)); // Show last 5 notifications
     } catch (error) {
-      console.error('Error loading notification history:', error);
+      logger.error('Error loading notification history:', error);
     }
   };
 
@@ -80,7 +81,7 @@ export default function NotificationSettingsScreen({ navigation }: { navigation:
         await notificationService.updateNotificationSettings(newSettings, user.id);
       }
     } catch (error) {
-      console.error('Error saving notification settings:', error);
+      logger.error('Error saving notification settings:', error);
       Alert.alert('Fehler', 'Die Einstellungen konnten nicht gespeichert werden.');
     }
   };
@@ -110,7 +111,7 @@ export default function NotificationSettingsScreen({ navigation }: { navigation:
         );
       }
     } catch (error) {
-      console.error('Error requesting permissions:', error);
+      logger.error('Error requesting permissions:', error);
       Alert.alert('Fehler', 'Benachrichtigungen konnten nicht aktiviert werden.');
     }
   };
@@ -130,12 +131,12 @@ export default function NotificationSettingsScreen({ navigation }: { navigation:
       
       Alert.alert('Test gesendet', 'Sie erhalten in 2 Sekunden eine Test-Benachrichtigung.');
     } catch (error) {
-      console.error('Error sending test notification:', error);
+      logger.error('Error sending test notification:', error);
       Alert.alert('Fehler', 'Test-Benachrichtigung konnte nicht gesendet werden.');
     }
   };
 
-  const getPermissionStatusText = () => {
+  const getPermissionStatusText = (): { text: string; color: string; icon: keyof typeof Ionicons.glyphMap } => {
     switch (permissionStatus) {
       case 'granted':
         return { text: 'Aktiviert', color: '#4CAF50', icon: 'checkmark-circle' };
@@ -188,7 +189,7 @@ export default function NotificationSettingsScreen({ navigation }: { navigation:
             onPress={permissionStatus !== 'granted' ? requestPermissions : undefined}
           >
             <View style={styles.permissionIcon}>
-              <Ionicons name={permissionInfo.icon as any} size={24} color={permissionInfo.color} />
+              <Ionicons name={permissionInfo.icon} size={24} color={permissionInfo.color} />
             </View>
             <View style={styles.permissionText}>
               <Text style={styles.permissionTitle}>Push-Benachrichtigungen</Text>

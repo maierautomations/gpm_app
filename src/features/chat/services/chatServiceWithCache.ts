@@ -2,6 +2,7 @@ import { supabase } from '../../../services/supabase/client';
 import { Database } from '../../../services/supabase/database.types';
 import MenuService from '../../menu/services/menuService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logger } from '../../../utils/logger';
 
 type ChatMessage = Database['public']['Tables']['chat_messages']['Row'];
 type ChatMessageInsert = Database['public']['Tables']['chat_messages']['Insert'];
@@ -134,7 +135,7 @@ export class ChatServiceWithCache {
         }
       }
     } catch (error) {
-      console.error('Error reading cache:', error);
+      logger.error('Error reading cache:', error);
     }
     
     return null;
@@ -148,7 +149,7 @@ export class ChatServiceWithCache {
         timestamp: Date.now()
       }));
     } catch (error) {
-      console.error('Error caching response:', error);
+      logger.error('Error caching response:', error);
     }
   }
 
@@ -169,7 +170,7 @@ export class ChatServiceWithCache {
       
       return `AKTUELLE SPEISEKARTE (Auszug):\n${menuByCategory}\n\nFür die vollständige Speisekarte mit allen ${menuItems.length} Gerichten verweise auf den Menü-Tab.`;
     } catch (error) {
-      console.error('Error fetching menu context:', error);
+      logger.error('Error fetching menu context:', error);
       return '';
     }
   }
@@ -185,7 +186,7 @@ export class ChatServiceWithCache {
       // First, check if we have a cached response for common questions
       const cachedResponse = await this.getCachedResponse(message, language);
       if (cachedResponse) {
-        console.log('Using cached response for:', message);
+        logger.log('Using cached response for:', message);
         
         if (onStream) {
           onStream(cachedResponse);
@@ -203,7 +204,7 @@ export class ChatServiceWithCache {
       }
       
       // If no cached response, fall back to API (you can use Gemini, Claude, or any cheaper alternative)
-      console.log('No cache hit, using API for:', message);
+      logger.log('No cache hit, using API for:', message);
       
       // Example with a cheaper API (replace with your preferred service)
       const menuContext = await this.getMenuContext();
@@ -234,7 +235,7 @@ export class ChatServiceWithCache {
       
       return fullResponse;
     } catch (error) {
-      console.error('ChatService.sendMessage error:', error);
+      logger.error('ChatService.sendMessage error:', error);
       
       const language = this.detectLanguage(message);
       const fallbackMessage = language === 'de' 
@@ -274,10 +275,10 @@ export class ChatServiceWithCache {
         .insert(message);
 
       if (error) {
-        console.error('Error saving chat message:', error);
+        logger.error('Error saving chat message:', error);
       }
     } catch (error) {
-      console.error('ChatService.saveMessage error:', error);
+      logger.error('ChatService.saveMessage error:', error);
     }
   }
 
@@ -291,13 +292,13 @@ export class ChatServiceWithCache {
         .limit(limit);
 
       if (error) {
-        console.error('Error fetching chat history:', error);
+        logger.error('Error fetching chat history:', error);
         return [];
       }
 
       return data?.reverse() || [];
     } catch (error) {
-      console.error('ChatService.getChatHistory error:', error);
+      logger.error('ChatService.getChatHistory error:', error);
       return [];
     }
   }
@@ -310,13 +311,13 @@ export class ChatServiceWithCache {
         .eq('user_id', userId);
 
       if (error) {
-        console.error('Error clearing chat history:', error);
+        logger.error('Error clearing chat history:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('ChatService.clearChatHistory error:', error);
+      logger.error('ChatService.clearChatHistory error:', error);
       return false;
     }
   }

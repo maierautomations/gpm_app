@@ -5,6 +5,8 @@ import { useUserStore } from '../stores/userStore';
 import notificationService from '../services/notifications/notificationService';
 import * as Notifications from 'expo-notifications';
 import { NavigationContainerRef } from '@react-navigation/native';
+import ErrorBoundary from '../shared/components/ErrorBoundary';
+import { ToastProvider } from '../shared/components';
 
 export default function App() {
   const initialize = useUserStore((state) => state.initialize);
@@ -56,9 +58,11 @@ export default function App() {
   }, [initialize, user?.id]);
 
   return (
-    <>
-      <AppNavigator navigationRef={navigationRef} />
-      <StatusBar style="auto" />
-    </>
+    <ToastProvider>
+      <ErrorBoundary>
+        <AppNavigator navigationRef={navigationRef} />
+        <StatusBar style="auto" />
+      </ErrorBoundary>
+    </ToastProvider>
   );
 }

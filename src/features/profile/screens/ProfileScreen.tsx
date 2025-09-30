@@ -22,6 +22,9 @@ import MenuService from '../../menu/services/menuService';
 import EventsService from '../../events/services/eventsService';
 import { Database } from '../../../services/supabase/database.types';
 import { useNavigation } from '@react-navigation/native';
+import { logger } from '../../../utils/logger';
+import { useToast } from '../../../shared/components';
+import { validateProfile, sanitizeString } from '../../../utils/validation';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type MenuItem = Database['public']['Tables']['menu_items']['Row'];
@@ -30,13 +33,14 @@ type Event = Database['public']['Tables']['events']['Row'];
 export default function ProfileScreen() {
   const navigation = useNavigation<any>();
   const { user, setUser } = useUserStore();
-  
+  const { showError, showSuccess } = useToast();
+
   // Auth state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   // Profile state
   const [profile, setProfile] = useState<Profile | null>(null);
   const [fullName, setFullName] = useState('');
@@ -65,7 +69,7 @@ export default function ProfileScreen() {
         .single();
 
       if (error) {
-        console.error('Error loading profile:', error);
+        logger.error('Error loading profile:', error);
         // Create profile if it doesn't exist
         if (error.code === 'PGRST116') {
           await createProfile();
@@ -75,7 +79,7 @@ export default function ProfileScreen() {
         setFullName(data.full_name || '');
       }
     } catch (error) {
-      console.error('Error in loadProfile:', error);
+      logger.error('Error in loadProfile:', error);
     } finally {
       setLoadingProfile(false);
     }
@@ -101,7 +105,7 @@ export default function ProfileScreen() {
         setProfile(data);
       }
     } catch (error) {
-      console.error('Error creating profile:', error);
+      logger.error('Error creating profile:', error);
     }
   };
 
@@ -112,7 +116,7 @@ export default function ProfileScreen() {
       const items = await MenuService.getFavorites(user.id);
       setFavoriteItems(items);
     } catch (error) {
-      console.error('Error loading favorites:', error);
+      logger.error('Error loading favorites:', error);
     }
   };
 
@@ -123,31 +127,47 @@ export default function ProfileScreen() {
       const events = await EventsService.getFavoriteEvents(user.id);
       setFavoriteEvents(events);
     } catch (error) {
-      console.error('Error loading favorite events:', error);
+      logger.error('Error loading favorite events:', error);
     }
   };
 
   const handleAuth = async () => {
     if (!email || !password) {
-      Alert.alert('Fehler', 'Bitte E-Mail und Passwort eingeben');
+      showError('Bitte E-Mail und Passwort eingeben');
+      return;
+    }
+
+    // Validate email format
+    const validation = validateProfile('temp', email);
+    if (!validation.isValid) {
+      showError(validation.error || 'Ungültige E-Mail-Adresse');
+      return;
+    }
+
+    // Use sanitized email
+    const sanitizedEmail = validation.data!.email;
+
+    // Validate password length
+    if (password.length < 6) {
+      showError('Passwort muss mindestens 6 Zeichen lang sein');
       return;
     }
 
     setLoading(true);
     try {
-      const newUser = isSignUp 
-        ? await signUp(email, password) 
-        : await signIn(email, password);
-      
+      const newUser = isSignUp
+        ? await signUp(sanitizedEmail, password)
+        : await signIn(sanitizedEmail, password);
+
       if (newUser) {
         setUser(newUser);
         setEmail('');
         setPassword('');
+        showSuccess(isSignUp ? 'Konto erfolgreich erstellt!' : 'Erfolgreich angemeldet!');
       }
     } catch (error: any) {
-      Alert.alert(
-        'Fehler', 
-        isSignUp 
+      showError(
+        isSignUp
           ? 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.'
           : 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.'
       );
@@ -184,22 +204,35 @@ export default function ProfileScreen() {
   const updateProfile = async () => {
     if (!user || !profile) return;
 
+    // Validate name
+    const sanitizedName = sanitizeString(fullName);
+    if (sanitizedName.length === 0) {
+      showError('Name darf nicht leer sein');
+      return;
+    }
+
+    if (sanitizedName.length > 100) {
+      showError('Name ist zu lang (maximal 100 Zeichen)');
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: fullName })
+        .update({ full_name: sanitizedName })
         .eq('id', user.id);
 
       if (error) {
-        Alert.alert('Fehler', 'Profil konnte nicht aktualisiert werden');
+        showError('Profil konnte nicht aktualisiert werden');
       } else {
-        Alert.alert('Erfolg', 'Profil wurde aktualisiert');
+        showSuccess('Profil wurde aktualisiert');
         setEditingProfile(false);
+        setFullName(sanitizedName);
         loadProfile();
       }
     } catch (error) {
-      Alert.alert('Fehler', 'Ein Fehler ist aufgetreten');
+      showError('Ein Fehler ist aufgetreten');
     } finally {
       setLoading(false);
     }

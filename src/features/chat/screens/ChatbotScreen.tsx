@@ -15,6 +15,14 @@ import ChatService from '../services/chatServiceWithGemini';
 import MessageBubble from '../components/MessageBubble';
 import ChatInput from '../components/ChatInput';
 import { useUserStore } from '../../../stores/userStore';
+import { logger } from '../../../utils/logger';
+import { useToast } from '../../../shared/components';
+import {
+  validateChatMessage,
+  checkChatRateLimit,
+  getRemainingChatMessages,
+  VALIDATION_LIMITS,
+} from '../../../utils/validation';
 
 interface Message {
   id: string;
@@ -28,8 +36,9 @@ export default function ChatbotScreen() {
   const [isTyping, setIsTyping] = useState(false);
   const [language, setLanguage] = useState<'de' | 'en'>('de');
   const flatListRef = useRef<FlatList>(null);
-  
+
   const user = useUserStore(state => state.user);
+  const { showError, showWarning } = useToast();
 
   useEffect(() => {
     // Load chat history if user is logged in
@@ -67,7 +76,7 @@ export default function ChatbotScreen() {
       
       setMessages(formattedMessages);
     } catch (error) {
-      console.error('Error loading chat history:', error);
+      logger.error('Error loading chat history:', error);
     }
   };
 
@@ -87,18 +96,40 @@ export default function ChatbotScreen() {
   const handleSend = async (messageText: string) => {
     if (!messageText.trim()) return;
 
+    // Validate message
+    const validation = validateChatMessage(messageText);
+    if (!validation.isValid) {
+      showError(validation.error || 'Ungültige Nachricht');
+      return;
+    }
+
+    // Use sanitized message from validation
+    const sanitizedMessage = validation.data!;
+
+    // Check rate limit
+    const userId = user?.id || 'guest';
+    if (!checkChatRateLimit(userId)) {
+      const remaining = getRemainingChatMessages(userId);
+      showWarning(
+        language === 'de'
+          ? `Zu viele Nachrichten. Bitte warten Sie einen Moment. (${remaining}/${VALIDATION_LIMITS.CHAT_RATE_LIMIT_MESSAGES} übrig)`
+          : `Too many messages. Please wait a moment. (${remaining}/${VALIDATION_LIMITS.CHAT_RATE_LIMIT_MESSAGES} remaining)`
+      );
+      return;
+    }
+
     // Detect language from message
-    const detectedLang = ChatService.detectLanguage(messageText);
+    const detectedLang = ChatService.detectLanguage(sanitizedMessage);
     setLanguage(detectedLang);
 
-    // Add user message
+    // Add user message (using sanitized version)
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: messageText,
+      text: sanitizedMessage,
       isUser: true,
       timestamp: new Date().toISOString(),
     };
-    
+
     setMessages(prev => [...prev, userMessage]);
     setIsTyping(true);
 
@@ -108,18 +139,18 @@ export default function ChatbotScreen() {
 
     try {
       // If user is not logged in, use a temporary ID
-      const userId = user?.id || 'guest-' + Date.now();
-      
+      const userIdForService = user?.id || 'guest-' + Date.now();
+
       await ChatService.sendMessage(
-        messageText,
-        userId,
+        sanitizedMessage,
+        userIdForService,
         (chunk) => {
           assistantResponse += chunk;
           // Update the assistant message with streaming content
           setMessages(prev => {
             const newMessages = [...prev];
             const existingIndex = newMessages.findIndex(m => m.id === assistantMessageId);
-            
+
             if (existingIndex >= 0) {
               newMessages[existingIndex].text = assistantResponse;
             } else {
@@ -130,21 +161,30 @@ export default function ChatbotScreen() {
                 timestamp: new Date().toISOString(),
               });
             }
-            
+
             return newMessages;
           });
         }
       );
     } catch (error) {
-      console.error('Error sending message:', error);
-      setMessages(prev => [...prev, {
-        id: assistantMessageId,
-        text: language === 'de' 
+      logger.error('Error sending message:', error);
+      showError(
+        language === 'de'
           ? 'Entschuldigung, es gab einen Fehler. Bitte versuchen Sie es später erneut.'
-          : 'Sorry, there was an error. Please try again later.',
-        isUser: false,
-        timestamp: new Date().toISOString(),
-      }]);
+          : 'Sorry, there was an error. Please try again later.'
+      );
+      setMessages(prev => [
+        ...prev,
+        {
+          id: assistantMessageId,
+          text:
+            language === 'de'
+              ? 'Entschuldigung, es gab einen Fehler. Bitte versuchen Sie es später erneut.'
+              : 'Sorry, there was an error. Please try again later.',
+          isUser: false,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
     } finally {
       setIsTyping(false);
       // Scroll to bottom

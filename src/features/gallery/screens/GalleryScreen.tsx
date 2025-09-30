@@ -19,6 +19,7 @@ import ImageView from 'react-native-image-viewing';
 import * as Sharing from 'expo-sharing';
 import GalleryService from '../services/galleryService';
 import { Database } from '../../../services/supabase/database.types';
+import { logger } from '../../../utils/logger';
 
 type GalleryPhoto = Database['public']['Tables']['gallery_photos']['Row'];
 type PhotoCategory = 'restaurant' | 'events' | 'eis';
@@ -55,7 +56,7 @@ export default function GalleryScreen() {
   const [photoViewerVisible, setPhotoViewerVisible] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
 
-  const categories: { key: PhotoCategory; label: string; icon: string }[] = [
+  const categories: { key: PhotoCategory; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
     { key: 'restaurant', label: 'Restaurant', icon: 'restaurant' },
     { key: 'events', label: 'Events', icon: 'calendar' },
     { key: 'eis', label: 'Eis-Spezialitäten', icon: 'snow' }
@@ -92,7 +93,7 @@ export default function GalleryScreen() {
       setPhotos(allPhotos);
       setCategoryCounts(counts);
     } catch (error) {
-      console.error('Error loading photos:', error);
+      logger.error('Error loading photos:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -124,7 +125,7 @@ export default function GalleryScreen() {
         Alert.alert('Fehler', 'Teilen ist auf diesem Gerät nicht verfügbar');
       }
     } catch (error) {
-      console.error('Error sharing photo:', error);
+      logger.error('Error sharing photo:', error);
       Alert.alert('Fehler', 'Foto konnte nicht geteilt werden');
     }
   };
@@ -221,7 +222,7 @@ export default function GalleryScreen() {
             onPress={() => setActiveCategory(category.key)}
           >
             <Ionicons
-              name={category.icon as any}
+              name={category.icon}
               size={20}
               color={activeCategory === category.key ? '#FF0000' : '#666'}
             />

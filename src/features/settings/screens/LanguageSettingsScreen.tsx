@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '../../../utils/logger';
 import {
   View,
   Text,
@@ -36,7 +37,7 @@ export default function LanguageSettingsScreen({ navigation }: { navigation: any
         setSelectedLanguage(saved);
       }
     } catch (error) {
-      console.error('Error loading language preference:', error);
+      logger.error('Error loading language preference:', error);
     } finally {
       setLoading(false);
     }
@@ -56,7 +57,7 @@ export default function LanguageSettingsScreen({ navigation }: { navigation: any
         [{ text: 'OK' }]
       );
     } catch (error) {
-      console.error('Error saving language preference:', error);
+      logger.error('Error saving language preference:', error);
       Alert.alert('Fehler', 'Die Spracheinstellung konnte nicht gespeichert werden.');
     }
   };

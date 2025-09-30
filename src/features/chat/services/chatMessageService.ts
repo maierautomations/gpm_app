@@ -1,5 +1,7 @@
 import { supabase } from '../../../services/supabase/client';
 import { Database } from '../../../services/supabase/database.types';
+import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { logger } from '../../../utils/logger';
 
 type ChatMessage = Database['public']['Tables']['chat_messages']['Row'];
 type NewChatMessage = Database['public']['Tables']['chat_messages']['Insert'];
@@ -24,13 +26,13 @@ export class ChatMessageService {
         .single();
 
       if (error) {
-        console.error('Error saving chat message:', error);
+        logger.error('Error saving chat message:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('ChatMessageService.saveMessage error:', error);
+      logger.error('ChatMessageService.saveMessage error:', error);
       return null;
     }
   }
@@ -45,14 +47,14 @@ export class ChatMessageService {
         .limit(limit);
 
       if (error) {
-        console.error('Error fetching chat history:', error);
+        logger.error('Error fetching chat history:', error);
         return [];
       }
 
       // Return in chronological order for display
       return (data || []).reverse();
     } catch (error) {
-      console.error('ChatMessageService.getChatHistory error:', error);
+      logger.error('ChatMessageService.getChatHistory error:', error);
       return [];
     }
   }
@@ -65,13 +67,13 @@ export class ChatMessageService {
         .eq('user_id', userId);
 
       if (error) {
-        console.error('Error clearing chat history:', error);
+        logger.error('Error clearing chat history:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('ChatMessageService.clearChatHistory error:', error);
+      logger.error('ChatMessageService.clearChatHistory error:', error);
       return false;
     }
   }
@@ -88,18 +90,18 @@ export class ChatMessageService {
         .order('created_at', { ascending: true });
 
       if (error) {
-        console.error('Error fetching recent messages:', error);
+        logger.error('Error fetching recent messages:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('ChatMessageService.getRecentMessages error:', error);
+      logger.error('ChatMessageService.getRecentMessages error:', error);
       return [];
     }
   }
 
-  static subscribeToMessages(userId: string, callback: (payload: any) => void) {
+  static subscribeToMessages(userId: string, callback: (payload: RealtimePostgresChangesPayload<ChatMessage>) => void) {
     return supabase
       .channel(`chat-messages-${userId}`)
       .on(

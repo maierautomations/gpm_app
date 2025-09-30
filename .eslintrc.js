@@ -20,7 +20,7 @@ module.exports = {
     'react/prop-types': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    'no-console': ['error', { allow: [] }], // Use logger utility instead
     'prefer-const': 'error',
     'no-var': 'error',
     'object-shorthand': 'error',

@@ -3,6 +3,7 @@ import { streamText, generateText } from 'ai';
 import { Database } from '../../../services/supabase/database.types';
 import ChatMessageService from './chatMessageService';
 import EnhancedContextProvider from './enhancedContextProvider';
+import { logger } from '../../../utils/logger';
 
 type ChatMessage = Database['public']['Tables']['chat_messages']['Row'];
 
@@ -189,7 +190,7 @@ export class ChatServiceWithAISDK {
         return response;
       }
     } catch (error) {
-      console.error('ChatServiceWithAISDK.sendMessage error:', error);
+      logger.error('ChatServiceWithAISDK.sendMessage error:', error);
 
       // Fallback response
       const language = this.detectLanguage(message);
@@ -264,7 +265,7 @@ export class ChatServiceWithAISDK {
 
       return result.text;
     } catch (error) {
-      console.error('Error getting restaurant summary:', error);
+      logger.error('Error getting restaurant summary:', error);
       return language === 'de'
         ? 'Grill-Partner Maier - Familienbetrieb seit 1968 in Kiel-Dietrichsdorf. Traditioneller Imbiss, Catering und Eis-Spezialitäten.'
         : 'Grill-Partner Maier - Family business since 1968 in Kiel-Dietrichsdorf. Traditional fast food, catering and ice cream specialties.';

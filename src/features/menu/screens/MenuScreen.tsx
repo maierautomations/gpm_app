@@ -18,6 +18,8 @@ import MenuItemDetailModal from '../components/MenuItemDetailModal';
 import { useUserStore } from '../../../stores/userStore';
 import { Database } from '../../../services/supabase/database.types';
 import { useRoute, RouteProp } from '@react-navigation/native';
+import { logger } from '../../../utils/logger';
+import { sanitizeString, VALIDATION_LIMITS } from '../../../utils/validation';
 
 type MenuItemType = Database['public']['Tables']['menu_items']['Row'];
 type MenuScreenRouteProp = RouteProp<{ Menu: { showOffers?: boolean } }, 'Menu'>;
@@ -77,7 +79,7 @@ export default function MenuScreen() {
       const items = await MenuService.getMenuItems();
       setMenuItems(items);
     } catch (error) {
-      console.error('Error loading menu:', error);
+      logger.error('Error loading menu:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -93,7 +95,7 @@ export default function MenuScreen() {
       }));
       setCategories(formattedCategories);
     } catch (error) {
-      console.error('Error loading categories:', error);
+      logger.error('Error loading categories:', error);
     }
   };
 
@@ -103,7 +105,7 @@ export default function MenuScreen() {
       const favoriteItems = await MenuService.getFavorites(user.id);
       setFavorites(favoriteItems.map(item => item.id));
     } catch (error) {
-      console.error('Error loading favorites:', error);
+      logger.error('Error loading favorites:', error);
     }
   };
 
@@ -123,7 +125,7 @@ export default function MenuScreen() {
         setOfferPrices(prices);
       }
     } catch (error) {
-      console.error('Error loading offers:', error);
+      logger.error('Error loading offers:', error);
     }
   };
 
@@ -199,6 +201,18 @@ export default function MenuScreen() {
     }
   };
 
+  const handleSearchChange = (text: string) => {
+    // Sanitize and validate search input
+    const sanitized = sanitizeString(text);
+
+    // Enforce max length
+    if (sanitized.length > VALIDATION_LIMITS.SEARCH_MAX_LENGTH) {
+      setSearchQuery(sanitized.substring(0, VALIDATION_LIMITS.SEARCH_MAX_LENGTH));
+    } else {
+      setSearchQuery(sanitized);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -216,8 +230,9 @@ export default function MenuScreen() {
           style={styles.searchInput}
           placeholder="Suche nach Gerichten..."
           value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={handleSearchChange}
           placeholderTextColor="#999"
+          maxLength={VALIDATION_LIMITS.SEARCH_MAX_LENGTH}
         />
         {searchQuery.length > 0 && (
           <Ionicons 

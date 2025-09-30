@@ -2,8 +2,10 @@ import MenuService from '../../menu/services/menuService';
 import EventsService from '../../events/services/eventsService';
 import GalleryService from '../../gallery/services/galleryService';
 import { Database } from '../../../services/supabase/database.types';
+import { logger } from '../../../utils/logger';
 
 type MenuItem = Database['public']['Tables']['menu_items']['Row'];
+type AngebotskalenderItem = Database['public']['Tables']['angebotskalender_items']['Row'];
 
 interface RestaurantConfig {
   name: string;
@@ -58,8 +60,10 @@ const RESTAURANT_CONFIG: RestaurantConfig = {
   deliveryInfo: 'Kein Lieferservice - nur Abholung und Vor-Ort-Verzehr',
 };
 
+type AllergenData = string[] | Record<string, boolean> | null | undefined;
+
 export class ContextManager {
-  private static formatAllergens(allergens: any): string[] {
+  private static formatAllergens(allergens: AllergenData): string[] {
     if (!allergens) return [];
     if (Array.isArray(allergens)) return allergens;
     if (typeof allergens === 'object') {
@@ -126,7 +130,11 @@ export class ContextManager {
       // Add special offers
       let offersText = '';
       if (specialOffers && specialOffers.angebotskalender_items?.length > 0) {
-        const offerItems = specialOffers.angebotskalender_items.map((item: any) => {
+        type OfferItemWithMenu = AngebotskalenderItem & {
+          menu_item?: MenuItem;
+        };
+
+        const offerItems = specialOffers.angebotskalender_items.map((item: OfferItemWithMenu) => {
           const displayName = item.custom_name || item.menu_item?.name || 'Unbekanntes Angebot';
           const originalPrice = item.base_price || item.menu_item?.price;
           const savings = originalPrice ? (parseFloat(originalPrice) - parseFloat(item.special_price)).toFixed(2) : null;
@@ -146,7 +154,7 @@ export class ContextManager {
 
       return `SPEISEKARTE (${menuItems.length} Artikel):\n${offersText}\n${menuByCategory}`;
     } catch (error) {
-      console.error('Error fetching menu context:', error);
+      logger.error('Error fetching menu context:', error);
       return 'SPEISEKARTE: Fehler beim Laden.';
     }
   }
@@ -178,7 +186,7 @@ export class ContextManager {
 
       return `KOMMENDE VERANSTALTUNGEN:\n${eventsList}\n\nHINWEIS: Wir bieten professionelles Catering für Events von Mai bis September.`;
     } catch (error) {
-      console.error('Error fetching events context:', error);
+      logger.error('Error fetching events context:', error);
       return 'VERANSTALTUNGEN: Fehler beim Laden.';
     }
   }

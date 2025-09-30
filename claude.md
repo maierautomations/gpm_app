@@ -27,7 +27,17 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 **Note**: All loyalty infrastructure remains in the database but has been removed from the UI to avoid showing non-functional features in v1.
 
-## Recent Updates (Updated: 2025-09-23)
+## Recent Updates (Updated: 2025-09-29)
+
+### Latest Code Quality Improvements (Tasks 1.1-1.3 Completed)
+- **Logger Utility**: Created `src/utils/logger.ts` for environment-aware logging
+  - Development logs visible in console
+  - Production logs silent (ready for error tracking integration)
+  - Usage: `import { logger } from '../../../utils/logger';`
+- **ESLint Rule**: Enforced no-console rule to prevent production console statements
+- **Service Layer Cleanup**: Updated MenuService, EventsService, OffersService with logger
+- **TypeScript Improvements**: Fixed userStore to use proper `User` type from Supabase
+- **Chat Service Consolidation**: Removed unused legacy `chatService.ts` (OpenAI)
 
 ### Latest Fixes
 - **Events Display Fixed**: Resolved issue where events weren't showing due to RLS policies and date format mismatch
@@ -379,11 +389,24 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 
 ### AI Chatbot
 
-- **Using Google Gemini Flash** (not OpenAI)
+**Current Implementation**: Using Google Gemini Flash (95% cheaper than OpenAI)
+
+**Active Service**: `chatServiceWithGemini.ts`
 - Direct fetch API for React Native compatibility
 - Bilingual (German/English) with automatic detection
-- System prompt includes restaurant info and menu context
+- Uses ContextManager for optimized menu context
 - Chat history saved via ChatMessageService
+- Imported by: `ChatbotScreen.tsx`
+
+**Available Alternative Services** (not currently used):
+- `chatServiceWithAISDK.ts` - Uses Vercel AI SDK v5 with streaming (recommended for future RAG integration)
+- `chatServiceWithCache.ts` - Adds caching layer for common questions (needs completion)
+
+**Architecture Notes**:
+- All chat services implement the same interface for easy swapping
+- Use ChatMessageService for all database operations
+- EnhancedContextProvider or ContextManager handle menu data injection
+- See `docs/rag-implementation-guide.md` for future RAG enhancement plan
 
 ### Event System
 

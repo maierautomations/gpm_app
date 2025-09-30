@@ -1,5 +1,7 @@
 import { supabase } from '../../../services/supabase/client';
 import { Database } from '../../../services/supabase/database.types';
+import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { logger } from '../../../utils/logger';
 
 type Event = Database['public']['Tables']['events']['Row'];
 type EventInsert = Database['public']['Tables']['events']['Insert'];
@@ -15,13 +17,13 @@ export class EventsService {
         .order('date', { ascending: true });
 
       if (error) {
-        console.error('Error fetching events:', error);
+        logger.error('Error fetching events:', error);
         throw error;
       }
 
       return data || [];
     } catch (error) {
-      console.error('EventsService.getEvents error:', error);
+      logger.error('EventsService.getEvents error:', error);
       return [];
     }
   }
@@ -37,13 +39,13 @@ export class EventsService {
         .limit(limit);
 
       if (error) {
-        console.error('Error fetching upcoming events:', error);
+        logger.error('Error fetching upcoming events:', error);
         throw error;
       }
 
       return data || [];
     } catch (error) {
-      console.error('EventsService.getUpcomingEvents error:', error);
+      logger.error('EventsService.getUpcomingEvents error:', error);
       return [];
     }
   }
@@ -58,13 +60,13 @@ export class EventsService {
         .order('date', { ascending: false });
 
       if (error) {
-        console.error('Error fetching past events:', error);
+        logger.error('Error fetching past events:', error);
         throw error;
       }
 
       return data || [];
     } catch (error) {
-      console.error('EventsService.getPastEvents error:', error);
+      logger.error('EventsService.getPastEvents error:', error);
       return [];
     }
   }
@@ -78,13 +80,13 @@ export class EventsService {
         .single();
 
       if (error) {
-        console.error('Error fetching event:', error);
+        logger.error('Error fetching event:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('EventsService.getEvent error:', error);
+      logger.error('EventsService.getEvent error:', error);
       return null;
     }
   }
@@ -102,18 +104,18 @@ export class EventsService {
         .order('date', { ascending: true });
 
       if (error) {
-        console.error('Error fetching events by month:', error);
+        logger.error('Error fetching events by month:', error);
         throw error;
       }
 
       return data || [];
     } catch (error) {
-      console.error('EventsService.getEventsByMonth error:', error);
+      logger.error('EventsService.getEventsByMonth error:', error);
       return [];
     }
   }
 
-  static subscribeToEventUpdates(callback: (payload: any) => void) {
+  static subscribeToEventUpdates(callback: (payload: RealtimePostgresChangesPayload<Event>) => void) {
     return supabase
       .channel('event-updates')
       .on(
@@ -139,7 +141,7 @@ export class EventsService {
         .single();
 
       if (fetchError) {
-        console.error('Error fetching profile:', fetchError);
+        logger.error('Error fetching profile:', fetchError);
         return false;
       }
 
@@ -165,13 +167,13 @@ export class EventsService {
         .eq('id', userId);
 
       if (updateError) {
-        console.error('Error updating favorite events:', updateError);
+        logger.error('Error updating favorite events:', updateError);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('EventsService.toggleFavoriteEvent error:', error);
+      logger.error('EventsService.toggleFavoriteEvent error:', error);
       return false;
     }
   }
@@ -186,7 +188,7 @@ export class EventsService {
         .single();
 
       if (profileError) {
-        console.error('Error fetching profile:', profileError);
+        logger.error('Error fetching profile:', profileError);
         return [];
       }
 
@@ -207,13 +209,13 @@ export class EventsService {
         .order('date', { ascending: true });
 
       if (error) {
-        console.error('Error fetching favorite events:', error);
+        logger.error('Error fetching favorite events:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('EventsService.getFavoriteEvents error:', error);
+      logger.error('EventsService.getFavoriteEvents error:', error);
       return [];
     }
   }

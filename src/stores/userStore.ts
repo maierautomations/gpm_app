@@ -1,9 +1,10 @@
 import { create } from 'zustand';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase/client';
 
 interface UserStore {
-  user: any | null;
-  setUser: (user: any | null) => void;
+  user: User | null;
+  setUser: (user: User | null) => void;
   initialize: () => void;
 }
 
