@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Image,
   StyleSheet,
   Dimensions,
   ActivityIndicator
@@ -14,6 +13,7 @@ import GalleryService from '../services/galleryService';
 import { Database } from '../../../services/supabase/database.types';
 import { useNavigation } from '@react-navigation/native';
 import { logger } from '../../../utils/logger';
+import CachedImage from '../../../shared/components/CachedImage';
 
 type GalleryPhoto = Database['public']['Tables']['gallery_photos']['Row'];
 
@@ -114,10 +114,12 @@ export default function GalleryPreview({ onViewAll }: GalleryPreviewProps) {
             onPress={() => handlePhotoPress(photo, index)}
             activeOpacity={0.8}
           >
-            <Image
-              source={{ uri: photo.thumbnail_url || photo.image_url }}
+            <CachedImage
+              uri={photo.thumbnail_url || photo.image_url}
               style={styles.photoImage}
-              resizeMode="cover"
+              contentFit="cover"
+              transition={200}
+              priority="high"
             />
             
             {/* Photo Info Overlay */}

@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Image,
   StyleSheet,
   Dimensions,
   SafeAreaView,
@@ -20,6 +19,7 @@ import * as Sharing from 'expo-sharing';
 import GalleryService from '../services/galleryService';
 import { Database } from '../../../services/supabase/database.types';
 import { logger } from '../../../utils/logger';
+import CachedImage, { prefetchImages } from '../../../shared/components/CachedImage';
 
 type GalleryPhoto = Database['public']['Tables']['gallery_photos']['Row'];
 type PhotoCategory = 'restaurant' | 'events' | 'eis';
@@ -105,9 +105,23 @@ export default function GalleryScreen() {
     loadPhotos();
   };
 
-  const handlePhotoPress = (photo: GalleryPhoto, index: number) => {
+  const handlePhotoPress = async (photo: GalleryPhoto, index: number) => {
     setSelectedPhotoIndex(index);
     setPhotoViewerVisible(true);
+
+    // Preload next 3-5 images for smoother gallery browsing
+    const categoryPhotos = photos[activeCategory] || [];
+    const imagesToPreload: string[] = [];
+
+    for (let i = index + 1; i <= Math.min(index + 5, categoryPhotos.length - 1); i++) {
+      imagesToPreload.push(categoryPhotos[i].image_url);
+    }
+
+    if (imagesToPreload.length > 0) {
+      prefetchImages(imagesToPreload).catch(error =>
+        logger.error('Error preloading gallery images:', error)
+      );
+    }
   };
 
   const handleClosePhotoViewer = () => {
@@ -153,10 +167,12 @@ export default function GalleryScreen() {
             onPress={() => handlePhotoPress(photo, index)}
             activeOpacity={0.8}
           >
-            <Image
-              source={{ uri: photo.thumbnail_url || photo.image_url }}
+            <CachedImage
+              uri={photo.thumbnail_url || photo.image_url}
               style={styles.gridImage}
-              resizeMode="cover"
+              contentFit="cover"
+              transition={200}
+              priority="normal"
             />
             
             {photo.title && (

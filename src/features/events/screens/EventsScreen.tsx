@@ -43,7 +43,8 @@ export default function EventsScreen() {
 
     // Subscribe to real-time updates
     const subscription = EventsService.subscribeToEventUpdates(() => {
-      loadEvents();
+      EventsService.invalidateCache(); // Invalidate cache on update
+      loadEvents(); // Refetch (cache miss)
     });
 
     return () => {

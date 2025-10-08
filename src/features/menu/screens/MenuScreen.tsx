@@ -61,8 +61,9 @@ export default function MenuScreen() {
 
     // Subscribe to real-time updates
     const subscription = MenuService.subscribeToMenuUpdates(() => {
-      loadMenuItems();
-      loadCategories();
+      MenuService.invalidateCache(); // Invalidate cache on update
+      loadMenuItems(); // Refetch (cache miss)
+      loadCategories(); // Refetch categories
     });
 
     return () => {

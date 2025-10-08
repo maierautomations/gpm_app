@@ -2,6 +2,7 @@ import { supabase } from '../../../services/supabase/client';
 import { Database } from '../../../services/supabase/database.types';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { logger } from '../../../utils/logger';
+import { ServiceCache, CACHE_TTL } from '../../../utils/serviceCache';
 
 type AngebotskalenderWeek = Database['public']['Tables']['angebotskalender_weeks']['Row'];
 type AngebotskalenderItem = Database['public']['Tables']['angebotskalender_items']['Row'];
@@ -25,11 +26,24 @@ export interface OfferItem {
 }
 
 export class OffersService {
+  // Cache instance for weekly offers (changes weekly on Monday)
+  private static offersCache = new ServiceCache<WeeklyOffer | null>(CACHE_TTL.UNTIL_MONDAY);
+  private static allWeeksCache = new ServiceCache<AngebotskalenderWeek[]>(CACHE_TTL.UNTIL_MONDAY);
+
   /**
    * Get the currently active week's offers
    */
   static async getCurrentWeekOffers(): Promise<WeeklyOffer | null> {
     try {
+      const cacheKey = 'current_week_offers';
+
+      // Check cache first
+      const cached = this.offersCache.get(cacheKey);
+      if (cached !== null) {
+        return cached;
+      }
+
+      // Cache miss - fetch from Supabase
       const { data, error } = await supabase
         .from('angebotskalender_weeks')
         .select(`
@@ -69,7 +83,7 @@ export class OffersService {
         };
       }) || [];
 
-      return {
+      const weeklyOffer = {
         week: {
           id: data.id,
           week_number: data.week_number,
@@ -83,6 +97,11 @@ export class OffersService {
         },
         items
       };
+
+      // Store in cache (until Monday)
+      this.offersCache.set(cacheKey, weeklyOffer);
+
+      return weeklyOffer;
     } catch (error) {
       logger.error('OffersService.getCurrentWeekOffers error:', error);
       return null;
@@ -94,6 +113,15 @@ export class OffersService {
    */
   static async getOffersByWeek(weekNumber: number): Promise<WeeklyOffer | null> {
     try {
+      const cacheKey = `offers_week_${weekNumber}`;
+
+      // Check cache first
+      const cached = this.offersCache.get(cacheKey);
+      if (cached !== null) {
+        return cached;
+      }
+
+      // Cache miss - fetch from Supabase
       const { data, error } = await supabase
         .from('angebotskalender_weeks')
         .select(`
@@ -133,7 +161,7 @@ export class OffersService {
         };
       }) || [];
 
-      return {
+      const weeklyOffer = {
         week: {
           id: data.id,
           week_number: data.week_number,
@@ -147,6 +175,11 @@ export class OffersService {
         },
         items
       };
+
+      // Store in cache (until Monday)
+      this.offersCache.set(cacheKey, weeklyOffer);
+
+      return weeklyOffer;
     } catch (error) {
       logger.error('OffersService.getOffersByWeek error:', error);
       return null;
@@ -158,6 +191,15 @@ export class OffersService {
    */
   static async getAllWeeks(): Promise<AngebotskalenderWeek[]> {
     try {
+      const cacheKey = 'all_weeks';
+
+      // Check cache first
+      const cached = this.allWeeksCache.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // Cache miss - fetch from Supabase
       const { data, error } = await supabase
         .from('angebotskalender_weeks')
         .select('*')
@@ -168,7 +210,12 @@ export class OffersService {
         return [];
       }
 
-      return data || [];
+      const weeks = data || [];
+
+      // Store in cache (until Monday)
+      this.allWeeksCache.set(cacheKey, weeks);
+
+      return weeks;
     } catch (error) {
       logger.error('OffersService.getAllWeeks error:', error);
       return [];
@@ -245,6 +292,27 @@ export class OffersService {
         callback
       )
       .subscribe();
+  }
+
+  /**
+   * Invalidate offers cache (called by subscription or manual refresh)
+   * Use this when weekly offers are rotated or updated
+   */
+  static invalidateCache(): void {
+    this.offersCache.invalidate(); // Clear all offers
+    this.allWeeksCache.invalidate(); // Clear all weeks
+
+    logger.info('[OffersService] Cache invalidated');
+  }
+
+  /**
+   * Get cache statistics for monitoring
+   */
+  static getCacheStats() {
+    return {
+      offers: this.offersCache.getStats(),
+      allWeeks: this.allWeeksCache.getStats(),
+    };
   }
 }
 

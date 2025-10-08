@@ -8,3 +8,4 @@ export { default as ErrorBoundary } from './ErrorBoundary';
 export { default as Toast } from './Toast';
 export { ToastProvider, useToast } from './ToastProvider';
 export type { ToastType, ToastProps } from './Toast';
+export { default as CachedImage, prefetchImages, clearImageCache, getCacheSize, IMAGE_CACHE_CONFIG } from './CachedImage';

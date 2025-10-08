@@ -4,13 +4,13 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   ScrollView,
   StyleSheet,
   Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Database } from '../../../services/supabase/database.types';
+import CachedImage from '../../../shared/components/CachedImage';
 
 type MenuItemType = Database['public']['Tables']['menu_items']['Row'];
 
@@ -79,7 +79,13 @@ export default function MenuItemDetailModal({
           >
             {/* Image (if available) */}
             {item.image_url && (
-              <Image source={{ uri: item.image_url }} style={styles.image} />
+              <CachedImage
+                uri={item.image_url}
+                style={styles.image}
+                contentFit="cover"
+                transition={250}
+                priority="high"
+              />
             )}
 
             {/* Offer Badge */}

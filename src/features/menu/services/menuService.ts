@@ -2,12 +2,28 @@ import { supabase } from '../../../services/supabase/client';
 import { Database } from '../../../services/supabase/database.types';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { logger } from '../../../utils/logger';
+import { ServiceCache, CACHE_TTL } from '../../../utils/serviceCache';
 
 type MenuItem = Database['public']['Tables']['menu_items']['Row'];
 
 export class MenuService {
+  // Cache instances for menu data
+  private static menuCache = new ServiceCache<MenuItem[]>(CACHE_TTL.MEDIUM); // 5 minutes
+  private static categoryCache = new ServiceCache<string[]>(CACHE_TTL.LONG); // 10 minutes
+  private static favoriteCache = new ServiceCache<MenuItem[]>(CACHE_TTL.SHORT); // 2 minutes (changes frequently)
+
   static async getMenuItems(category?: string): Promise<MenuItem[]> {
     try {
+      // Generate cache key based on parameters
+      const cacheKey = category ? `menu_${category}` : 'menu_all';
+
+      // Check cache first
+      const cached = this.menuCache.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // Cache miss - fetch from Supabase
       let query = supabase
         .from('menu_items')
         .select('*')
@@ -26,7 +42,11 @@ export class MenuService {
         throw error;
       }
 
-      return data || [];
+      // Store in cache
+      const menuItems = data || [];
+      this.menuCache.set(cacheKey, menuItems);
+
+      return menuItems;
     } catch (error) {
       logger.error('MenuService.getMenuItems error:', error);
       return [];
@@ -123,6 +143,15 @@ export class MenuService {
 
   static async getFavorites(userId: string): Promise<MenuItem[]> {
     try {
+      const cacheKey = `favorites_${userId}`;
+
+      // Check cache first
+      const cached = this.favoriteCache.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // Cache miss - fetch from Supabase
       // Get user's favorite IDs
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -136,7 +165,7 @@ export class MenuService {
       }
 
       // Parse favorites from JSONB
-      const favoriteIds = Array.isArray(profile?.favorites) 
+      const favoriteIds = Array.isArray(profile?.favorites)
         ? profile.favorites as number[]
         : [];
 
@@ -155,7 +184,11 @@ export class MenuService {
         return [];
       }
 
-      return data || [];
+      // Store in cache
+      const favorites = data || [];
+      this.favoriteCache.set(cacheKey, favorites);
+
+      return favorites;
     } catch (error) {
       logger.error('MenuService.getFavorites error:', error);
       return [];
@@ -207,6 +240,15 @@ export class MenuService {
   // Helper to get unique categories from menu items
   static async getCategories(): Promise<string[]> {
     try {
+      const cacheKey = 'categories';
+
+      // Check cache first
+      const cached = this.categoryCache.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // Cache miss - fetch from Supabase
       const { data, error } = await supabase
         .from('menu_items')
         .select('category')
@@ -219,11 +261,44 @@ export class MenuService {
 
       // Extract unique categories
       const categories = [...new Set(data?.map(item => item.category) || [])];
-      return categories.sort();
+      const sortedCategories = categories.sort();
+
+      // Store in cache
+      this.categoryCache.set(cacheKey, sortedCategories);
+
+      return sortedCategories;
     } catch (error) {
       logger.error('MenuService.getCategories error:', error);
       return [];
     }
+  }
+
+  /**
+   * Invalidate menu cache (called by subscription or manual refresh)
+   * @param userId Optional user ID to invalidate user-specific caches (favorites)
+   */
+  static invalidateCache(userId?: string): void {
+    this.menuCache.invalidate(); // Clear all menu items
+    this.categoryCache.invalidate(); // Clear categories
+
+    if (userId) {
+      this.favoriteCache.invalidate(`favorites_${userId}`); // Clear user's favorites
+    } else {
+      this.favoriteCache.invalidate(); // Clear all favorites
+    }
+
+    logger.info('[MenuService] Cache invalidated');
+  }
+
+  /**
+   * Get cache statistics for monitoring
+   */
+  static getCacheStats() {
+    return {
+      menu: this.menuCache.getStats(),
+      category: this.categoryCache.getStats(),
+      favorite: this.favoriteCache.getStats(),
+    };
   }
 }
 

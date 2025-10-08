@@ -2,13 +2,26 @@ import { supabase } from '../../../services/supabase/client';
 import { Database } from '../../../services/supabase/database.types';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { logger } from '../../../utils/logger';
+import { ServiceCache, CACHE_TTL } from '../../../utils/serviceCache';
 
 type Event = Database['public']['Tables']['events']['Row'];
 type EventInsert = Database['public']['Tables']['events']['Insert'];
 
 export class EventsService {
+  // Cache instance for events (seasonal, changes monthly/weekly)
+  private static eventsCache = new ServiceCache<Event[]>(CACHE_TTL.VERY_LONG); // 30 minutes
+
   static async getEvents(): Promise<Event[]> {
     try {
+      const cacheKey = 'all_events';
+
+      // Check cache first
+      const cached = this.eventsCache.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // Cache miss - fetch from Supabase
       const today = new Date().toISOString().split('T')[0]; // Get date in YYYY-MM-DD format
       const { data, error } = await supabase
         .from('events')
@@ -21,7 +34,12 @@ export class EventsService {
         throw error;
       }
 
-      return data || [];
+      const events = data || [];
+
+      // Store in cache
+      this.eventsCache.set(cacheKey, events);
+
+      return events;
     } catch (error) {
       logger.error('EventsService.getEvents error:', error);
       return [];
@@ -30,6 +48,15 @@ export class EventsService {
 
   static async getUpcomingEvents(limit: number = 5): Promise<Event[]> {
     try {
+      const cacheKey = `upcoming_events_${limit}`;
+
+      // Check cache first
+      const cached = this.eventsCache.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // Cache miss - fetch from Supabase
       const today = new Date().toISOString().split('T')[0]; // Get date in YYYY-MM-DD format
       const { data, error } = await supabase
         .from('events')
@@ -43,7 +70,12 @@ export class EventsService {
         throw error;
       }
 
-      return data || [];
+      const events = data || [];
+
+      // Store in cache
+      this.eventsCache.set(cacheKey, events);
+
+      return events;
     } catch (error) {
       logger.error('EventsService.getUpcomingEvents error:', error);
       return [];
@@ -52,6 +84,15 @@ export class EventsService {
 
   static async getPastEvents(): Promise<Event[]> {
     try {
+      const cacheKey = 'past_events';
+
+      // Check cache first
+      const cached = this.eventsCache.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // Cache miss - fetch from Supabase
       const today = new Date().toISOString().split('T')[0]; // Get date in YYYY-MM-DD format
       const { data, error } = await supabase
         .from('events')
@@ -64,7 +105,12 @@ export class EventsService {
         throw error;
       }
 
-      return data || [];
+      const events = data || [];
+
+      // Store in cache
+      this.eventsCache.set(cacheKey, events);
+
+      return events;
     } catch (error) {
       logger.error('EventsService.getPastEvents error:', error);
       return [];
@@ -93,6 +139,15 @@ export class EventsService {
 
   static async getEventsByMonth(year: number, month: number): Promise<Event[]> {
     try {
+      const cacheKey = `events_${year}_${month}`;
+
+      // Check cache first
+      const cached = this.eventsCache.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      // Cache miss - fetch from Supabase
       const startDate = new Date(year, month - 1, 1).toISOString();
       const endDate = new Date(year, month, 0).toISOString();
 
@@ -108,7 +163,12 @@ export class EventsService {
         throw error;
       }
 
-      return data || [];
+      const events = data || [];
+
+      // Store in cache
+      this.eventsCache.set(cacheKey, events);
+
+      return events;
     } catch (error) {
       logger.error('EventsService.getEventsByMonth error:', error);
       return [];
@@ -218,6 +278,24 @@ export class EventsService {
       logger.error('EventsService.getFavoriteEvents error:', error);
       return [];
     }
+  }
+
+  /**
+   * Invalidate events cache (called by subscription or manual refresh)
+   */
+  static invalidateCache(): void {
+    this.eventsCache.invalidate(); // Clear all events
+
+    logger.info('[EventsService] Cache invalidated');
+  }
+
+  /**
+   * Get cache statistics for monitoring
+   */
+  static getCacheStats() {
+    return {
+      events: this.eventsCache.getStats(),
+    };
   }
 }
 

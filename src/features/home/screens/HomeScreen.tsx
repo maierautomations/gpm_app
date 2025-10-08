@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  ScrollView,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  StyleSheet, 
-  Image,
+  StyleSheet,
   Linking,
   RefreshControl,
   SafeAreaView,
@@ -20,6 +19,7 @@ import { Database } from '../../../services/supabase/database.types';
 import { useNavigation } from '@react-navigation/native';
 import GalleryPreview from '../../gallery/components/GalleryPreview';
 import { logger } from '../../../utils/logger';
+import CachedImage from '../../../shared/components/CachedImage';
 
 type MenuItem = Database['public']['Tables']['menu_items']['Row'];
 
@@ -107,9 +107,12 @@ export default function HomeScreen() {
       >
         {/* Header with Restaurant Image */}
         <View style={styles.header}>
-          <Image 
-            source={{ uri: 'https://via.placeholder.com/400x200' }} // Replace with actual image
+          <CachedImage
+            uri="https://via.placeholder.com/400x200" // Replace with actual image
             style={styles.headerImage}
+            contentFit="cover"
+            transition={300}
+            priority="high"
           />
           <View style={styles.headerOverlay}>
             <Text style={styles.headerTitle}>Grill-Partner Maier</Text>
@@ -227,13 +230,19 @@ export default function HomeScreen() {
             
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {specialOffers.map(item => (
-                <TouchableOpacity 
-                  key={item.id} 
+                <TouchableOpacity
+                  key={item.id}
                   style={styles.specialCard}
                   onPress={() => handleQuickAction('Menu')}
                 >
                   {item.image_url && (
-                    <Image source={{ uri: item.image_url }} style={styles.specialImage} />
+                    <CachedImage
+                      uri={item.image_url}
+                      style={styles.specialImage}
+                      contentFit="cover"
+                      transition={200}
+                      priority="normal"
+                    />
                   )}
                   <View style={styles.specialContent}>
                     <Text style={styles.specialName} numberOfLines={1}>{item.name}</Text>

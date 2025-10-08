@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Database } from '../../services/supabase/database.types';
+import { Database } from '../../../services/supabase/database.types';
+import CachedImage from '../../../shared/components/CachedImage';
 
 type MenuItemType = Database['public']['Tables']['menu_items']['Row'];
 
@@ -27,7 +28,13 @@ export default function MenuItem({ item, isFavorite, onPress, onToggleFavorite, 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       {item.image_url && (
-        <Image source={{ uri: item.image_url }} style={styles.image} />
+        <CachedImage
+          uri={item.image_url}
+          style={styles.image}
+          contentFit="cover"
+          transition={200}
+          priority="normal"
+        />
       )}
       {isOffer && (
         <View style={styles.offerBadge}>

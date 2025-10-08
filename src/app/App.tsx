@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useUserStore } from '../stores/userStore';
 import notificationService from '../services/notifications/notificationService';
+import FeatureFlagService from '../services/featureFlagService';
 import * as Notifications from 'expo-notifications';
 import { NavigationContainerRef } from '@react-navigation/native';
 import ErrorBoundary from '../shared/components/ErrorBoundary';
@@ -15,12 +16,23 @@ export default function App() {
   const notificationResponseListener = useRef<any>();
 
   useEffect(() => {
+    // Initialize PostHog for feature flags and analytics
+    FeatureFlagService.initialize();
+
     // Initialize user store
     initialize();
 
     // Initialize notification service when user is authenticated
     if (user?.id) {
       notificationService.initialize(user.id);
+
+      // Identify user in PostHog for feature flag targeting
+      FeatureFlagService.identifyUser(user.id, {
+        email: user.email,
+      });
+    } else {
+      // Reset PostHog on logout
+      FeatureFlagService.resetUser();
     }
 
     // Handle notification responses (when user taps notification)
