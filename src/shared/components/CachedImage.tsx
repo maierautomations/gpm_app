@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image as ExpoImage, ImageProps as ExpoImageProps } from 'expo-image';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
+import { logger } from '../../utils/logger';
 
 /**
  * CachedImage Component
@@ -79,7 +80,7 @@ export async function prefetchImages(uris: string[]): Promise<void> {
       uris.map(uri => ExpoImage.prefetch(uri))
     );
   } catch (error) {
-    console.warn('Error prefetching images:', error);
+    logger.warn('Error prefetching images:', error);
   }
 }
 
@@ -94,7 +95,7 @@ export async function clearImageCache(): Promise<boolean> {
     await ExpoImage.clearDiskCache();
     return true;
   } catch (error) {
-    console.error('Error clearing image cache:', error);
+    logger.error('Error clearing image cache:', error);
     return false;
   }
 }

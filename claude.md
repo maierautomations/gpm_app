@@ -32,6 +32,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 ### Latest Performance Improvements (Phase 2 - Tasks 2.1-2.2 Completed)
 
 #### Task 2.2: Service-Level Query Result Caching (✅ COMPLETED)
+
 - **TTL-based In-Memory Caching**: Reduces redundant Supabase queries by 60-70%
   - Created `ServiceCache` utility: Generic TTL-based cache with memory limits and LRU eviction
   - Location: `src/utils/serviceCache.ts`
@@ -54,6 +55,7 @@ This file provides guidance to Claude Code when working with code in this reposi
   - **Zero bundle size**: No external dependencies, native Map-based implementation
 
 #### Task 2.1: Image Caching System (✅ COMPLETED)
+
 - **expo-image Integration**: Automatic memory + disk caching
   - Created `CachedImage` shared component with progressive loading (200ms fade-in transitions)
   - Migrated all 5 components: GalleryScreen, GalleryPreview, HomeScreen, MenuItem, MenuItemDetailModal
@@ -66,9 +68,10 @@ This file provides guidance to Claude Code when working with code in this reposi
   - Future-proof: Menu item images will automatically use caching when added
 
 ### Latest Code Quality Improvements (Tasks 1.1-1.8 Completed)
+
 - **Logger Utility**: Created `src/utils/logger.ts` for environment-aware logging
   - Development logs visible in console
-  - Production logs silent (ready for error tracking integration)
+  - Production logs integrated with Sentry for error tracking
   - Usage: `import { logger } from '../../../utils/logger';`
 - **ESLint Rule**: Enforced no-console rule to prevent production console statements
 - **Service Layer Cleanup**: Updated MenuService, EventsService, OffersService with logger
@@ -87,12 +90,42 @@ This file provides guidance to Claude Code when working with code in this reposi
   - User targeting and analytics tracking
   - Documentation: `docs/feature-flags-guide.md`
 
+### Error Monitoring & Production Readiness (Task 1.3 - ✅ COMPLETED)
+
+- **Sentry Integration**: Full production error tracking with stack traces
+  - Sentry SDK installed and configured (`@sentry/react-native`)
+  - Automatic error capture and reporting in production builds
+  - Source maps upload configured for readable stack traces
+  - Free tier: 5,000 errors/month (sufficient for app size)
+- **Logger Integration**: Automatic routing to Sentry in production
+  - `logger.error()` → Sentry.captureException() (full stack traces)
+  - `logger.warn()` → Sentry.captureMessage() (warning level)
+  - `logger.info()` → Sentry breadcrumbs (context trail before errors)
+  - `logger.debug()` → Development only (no production noise)
+- **User Context Tracking**: Errors linked to user IDs for better analysis
+  - User info automatically sent to Sentry on login/logout
+  - `userStore.ts` integrated with `logger.setUser()`
+  - See which users experienced which errors
+- **Console Statement Cleanup**: All production console statements removed
+  - `CachedImage.tsx` console statements replaced with logger
+  - ESLint no-console rule enforced (only logger.ts exempt)
+- **Configuration**:
+  - Environment: `.env.local` with `EXPO_PUBLIC_SENTRY_DSN`
+  - Initialization: `src/app/App.tsx` with `Sentry.init()` and `Sentry.wrap()`
+  - Only active in production builds (`enableInExpoDevelopment: false`)
+- **Performance Monitoring**: Available but disabled for now
+  - Can be enabled later with `tracesSampleRate` configuration
+  - Free tier includes 10,000 transactions/month
+  - Tracks navigation and API call performance when enabled
+
 ### Latest Fixes
+
 - **Events Display Fixed**: Resolved issue where events weren't showing due to RLS policies and date format mismatch
 - **Date Comparison**: Fixed date filtering to use YYYY-MM-DD format instead of ISO timestamps
 - **Mock Data Removed**: Cleaned up mock event data that was overriding real database content
 
 ### Recent Features
+
 - **Expo SDK 54**: Upgraded for better Expo Go compatibility
 - **Menu Detail Modals**: Full item descriptions with allergen display
 - **Hybrid Offers System**: Supports both linked menu items and custom combos
@@ -412,7 +445,11 @@ import CachedImage from '../../../shared/components/CachedImage';
 ### Helper Functions
 
 ```typescript
-import { prefetchImages, clearImageCache, getCacheSize } from '../../../shared/components/CachedImage';
+import {
+  prefetchImages,
+  clearImageCache,
+  getCacheSize,
+} from '../../../shared/components/CachedImage';
 
 // Preload images for better UX (used in gallery)
 await prefetchImages(['url1.jpg', 'url2.jpg', 'url3.jpg']);
@@ -465,7 +502,7 @@ const handlePhotoPress = async (photo: GalleryPhoto, index: number) => {
   setPhotoViewerVisible(true);
 
   // Preload next 3-5 images for smoother browsing
-  const imagesToPreload = categoryPhotos.slice(index + 1, index + 6).map(p => p.image_url);
+  const imagesToPreload = categoryPhotos.slice(index + 1, index + 6).map((p) => p.image_url);
   await prefetchImages(imagesToPreload);
 };
 ```
@@ -546,6 +583,7 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 **Current Implementation**: Using Google Gemini Flash (95% cheaper than OpenAI)
 
 **Active Service**: `chatServiceWithGemini.ts`
+
 - Direct fetch API for React Native compatibility
 - Bilingual (German/English) with automatic detection
 - Uses ContextManager for optimized menu context
@@ -553,10 +591,12 @@ INSERT INTO gallery_photos (category, title, description, image_url, thumbnail_u
 - Imported by: `ChatbotScreen.tsx`
 
 **Available Alternative Services** (not currently used):
+
 - `chatServiceWithAISDK.ts` - Uses Vercel AI SDK v5 with streaming (recommended for future RAG integration)
 - `chatServiceWithCache.ts` - Adds caching layer for common questions (needs completion)
 
 **Architecture Notes**:
+
 - All chat services implement the same interface for easy swapping
 - Use ChatMessageService for all database operations
 - EnhancedContextProvider or ContextManager handle menu data injection

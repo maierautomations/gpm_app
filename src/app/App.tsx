@@ -8,8 +8,17 @@ import * as Notifications from 'expo-notifications';
 import { NavigationContainerRef } from '@react-navigation/native';
 import ErrorBoundary from '../shared/components/ErrorBoundary';
 import { ToastProvider } from '../shared/components';
+import * as Sentry from '@sentry/react-native';
 
-export default function App() {
+// Initialize Sentry for error monitoring
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  environment: process.env.EXPO_PUBLIC_SENTRY_ENVIRONMENT || 'production',
+  enableInExpoDevelopment: false, // Only active in production builds, not in Expo Go
+  tracesSampleRate: 1.0, // Track 100% of transactions
+});
+
+function App() {
   const initialize = useUserStore((state) => state.initialize);
   const user = useUserStore((state) => state.user);
   const navigationRef = useRef<NavigationContainerRef<any>>(null);
@@ -78,3 +87,4 @@ export default function App() {
     </ToastProvider>
   );
 }
+export default Sentry.wrap(App);

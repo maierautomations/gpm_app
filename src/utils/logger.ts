@@ -14,8 +14,10 @@
  * ```
  */
 
-// Check if running in development mode
-const __DEV__ = process.env.NODE_ENV === 'development' || __DEV__;
+import * as Sentry from '@sentry/react-native';
+
+// __DEV__ is globally available in React Native, but we add a fallback for type safety
+declare const __DEV__: boolean;
 
 interface LoggerInterface {
   log: (message: string, ...args: any[]) => void;
@@ -23,6 +25,8 @@ interface LoggerInterface {
   warn: (message: string, ...args: any[]) => void;
   info: (message: string, ...args: any[]) => void;
   debug: (message: string, ...args: any[]) => void;
+  setUser: (userId: string | null, email?: string, username?: string) => void;
+  setContext: (key: string, context: Record<string, any>) => void;
 }
 
 class Logger implements LoggerInterface {
@@ -36,33 +40,55 @@ class Logger implements LoggerInterface {
   }
 
   /**
-   * Log informational messages (development only)
+   * Log informational messages (development only, breadcrumbs in production)
    */
   info(message: string, ...args: any[]): void {
     if (__DEV__) {
       console.info(`[INFO] ${message}`, ...args);
+    } else {
+      // In production: Add breadcrumb for context
+      Sentry.addBreadcrumb({
+        category: 'info',
+        message,
+        level: 'info',
+        data: args.length > 0 ? { args } : undefined,
+      });
     }
   }
 
   /**
-   * Log errors (always logged, can be sent to tracking service)
+   * Log errors (always logged, sent to Sentry in production)
    */
   error(message: string, error?: any): void {
     if (__DEV__) {
       console.error(`[ERROR] ${message}`, error);
     } else {
-      // In production, send to error tracking service
-      // Example: Sentry.captureException(error, { extra: { message } });
-      console.error(`[ERROR] ${message}`, error);
+      // In production: Send error to Sentry
+      if (error instanceof Error) {
+        Sentry.captureException(error, {
+          extra: { message },
+        });
+      } else {
+        Sentry.captureMessage(message, {
+          level: 'error',
+          extra: { error },
+        });
+      }
     }
   }
 
   /**
-   * Log warnings (development only)
+   * Log warnings (development only, sent to Sentry in production)
    */
   warn(message: string, ...args: any[]): void {
     if (__DEV__) {
       console.warn(`[WARN] ${message}`, ...args);
+    } else {
+      // In production: Send warning to Sentry
+      Sentry.captureMessage(message, {
+        level: 'warning',
+        extra: args.length > 0 ? { args } : undefined,
+      });
     }
   }
 
@@ -81,6 +107,32 @@ class Logger implements LoggerInterface {
   clear(): void {
     if (__DEV__) {
       console.clear();
+    }
+  }
+
+  /**
+   * Set user context for error tracking (helps identify which user had issues)
+   */
+  setUser(userId: string | null, email?: string, username?: string): void {
+    if (!__DEV__) {
+      Sentry.setUser(
+        userId
+          ? {
+              id: userId,
+              email,
+              username,
+            }
+          : null
+      );
+    }
+  }
+
+  /**
+   * Set custom context for error tracking (e.g., screen name, feature flags)
+   */
+  setContext(key: string, context: Record<string, any>): void {
+    if (!__DEV__) {
+      Sentry.setContext(key, context);
     }
   }
 }
