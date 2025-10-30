@@ -15,14 +15,14 @@ interface MenuItemProps {
   isOffer?: boolean;
 }
 
-export default function MenuItem({ item, isFavorite, onPress, onToggleFavorite, offerPrice, isOffer }: MenuItemProps) {
+const MenuItem = React.memo(({ item, isFavorite, onPress, onToggleFavorite, offerPrice, isOffer }: MenuItemProps) => {
   // Parse price (it comes as string from numeric field)
   const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
   const specialPrice = offerPrice ? parseFloat(offerPrice) : null;
-  
+
   // Parse allergens if they exist
-  const allergenCount = item.allergens ? 
-    (Array.isArray(item.allergens) ? item.allergens.length : 
+  const allergenCount = item.allergens ?
+    (Array.isArray(item.allergens) ? item.allergens.length :
      typeof item.allergens === 'object' ? Object.keys(item.allergens).length : 0) : 0;
 
   return (
@@ -85,7 +85,20 @@ export default function MenuItem({ item, isFavorite, onPress, onToggleFavorite, 
       </View>
     </TouchableOpacity>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison function: only re-render if these props changed
+  // Return true if props are equal (no re-render needed)
+  return (
+    prevProps.item.id === nextProps.item.id &&
+    prevProps.item.price === nextProps.item.price &&
+    prevProps.item.name === nextProps.item.name &&
+    prevProps.isFavorite === nextProps.isFavorite &&
+    prevProps.offerPrice === nextProps.offerPrice &&
+    prevProps.isOffer === nextProps.isOffer
+  );
+});
+
+export default MenuItem;
 
 const styles = StyleSheet.create({
   container: {

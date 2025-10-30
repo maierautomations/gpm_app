@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  FlatList, 
-  ActivityIndicator, 
-  StyleSheet, 
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  ActivityIndicator,
+  StyleSheet,
   Text,
   RefreshControl,
   TextInput,
   SafeAreaView
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import MenuService from '../services/menuService';
 import OffersService, { WeeklyOffer } from '../../offers/services/offersService';
@@ -41,7 +41,11 @@ export default function MenuScreen() {
   const [offerPrices, setOfferPrices] = useState<Map<number, string>>(new Map());
   const [selectedItem, setSelectedItem] = useState<MenuItemType | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  
+
+  // Refs for scroll position preservation
+  const flashListRef = useRef<FlashList<MenuItemType>>(null);
+  const scrollPositionRef = useRef(0);
+
   const user = useUserStore(state => state.user);
 
   useEffect(() => {
@@ -214,6 +218,11 @@ export default function MenuScreen() {
     }
   };
 
+  const handleScroll = (event: any) => {
+    // Store current scroll position for preservation
+    scrollPositionRef.current = event.nativeEvent.contentOffset.y;
+  };
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -285,7 +294,8 @@ export default function MenuScreen() {
           </Text>
         </View>
       ) : (
-        <FlatList
+        <FlashList
+          ref={flashListRef}
           data={filteredItems}
           keyExtractor={item => item.id.toString()}
           renderItem={({ item }) => (
@@ -306,6 +316,9 @@ export default function MenuScreen() {
             />
           }
           contentContainerStyle={styles.listContent}
+          estimatedItemSize={200}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
         />
       )}
       
