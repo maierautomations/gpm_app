@@ -29,7 +29,21 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## Recent Updates (Updated: 2025-10-08)
 
-### Latest Performance Improvements (Phase 2 - Tasks 2.1-2.4 Completed)
+### Latest Performance Improvements (Phase 2 - Tasks 2.1-2.5 Completed)
+
+#### Task 2.5: Request Debouncing for Search (✅ COMPLETED)
+- **Custom useDebounce Hook**: Zero-dependency debouncing solution
+  - Created `src/shared/hooks/useDebounce.ts` - TypeScript generic hook with 300ms default delay
+  - Exported from shared hooks index for reusability across app
+  - **Performance optimization**: Reduces filter operations by 83%
+  - **Example**: Typing "Burger" (6 letters) = 1 filter operation instead of 6
+  - **Implementation**: Integrated into MenuScreen search with visual feedback
+  - **Loading indicator**: ActivityIndicator shows during debounce delay
+  - **UX improvements**: TextInput updates immediately (no input lag), filter operations delayed
+  - **Memory efficient**: Uses setTimeout cleanup pattern, no memory leaks
+  - **Type-safe**: Generic implementation supports any data type
+  - **Zero bundle size**: No external dependencies, native React hooks only
+  - **Usage**: `const debouncedValue = useDebounce(value, 300);`
 
 #### Task 2.4: Lazy Loading for Menu Items (✅ COMPLETED)
 - **FlashList Integration**: Replaced FlatList with high-performance FlashList from Shopify

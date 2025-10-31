@@ -20,6 +20,7 @@ import { Database } from '../../../services/supabase/database.types';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { logger } from '../../../utils/logger';
 import { sanitizeString, VALIDATION_LIMITS } from '../../../utils/validation';
+import { useDebounce } from '../../../shared/hooks/useDebounce';
 
 type MenuItemType = Database['public']['Tables']['menu_items']['Row'];
 type MenuScreenRouteProp = RouteProp<{ Menu: { showOffers?: boolean } }, 'Menu'>;
@@ -32,6 +33,8 @@ export default function MenuScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const [isSearching, setIsSearching] = useState(false);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [categories, setCategories] = useState<Array<{ id: string; label: string }>>([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -77,7 +80,12 @@ export default function MenuScreen() {
 
   useEffect(() => {
     filterItems();
-  }, [menuItems, selectedCategory, searchQuery, showFavoritesOnly, showOffersOnly, favorites, offerItemIds]);
+  }, [menuItems, selectedCategory, debouncedSearchQuery, showFavoritesOnly, showOffersOnly, favorites, offerItemIds]);
+
+  useEffect(() => {
+    // Show loading indicator if search query exists and debounced value doesn't match yet
+    setIsSearching(searchQuery !== debouncedSearchQuery && searchQuery.length > 0);
+  }, [searchQuery, debouncedSearchQuery]);
 
   const loadMenuItems = async () => {
     try {
@@ -152,11 +160,11 @@ export default function MenuScreen() {
       filtered = filtered.filter(item => item.category === selectedCategory);
     }
 
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(item => 
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    // Filter by search query (using debounced value)
+    if (debouncedSearchQuery) {
+      filtered = filtered.filter(item =>
+        item.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        item.description?.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
       );
     }
 
@@ -244,11 +252,14 @@ export default function MenuScreen() {
           placeholderTextColor="#999"
           maxLength={VALIDATION_LIMITS.SEARCH_MAX_LENGTH}
         />
-        {searchQuery.length > 0 && (
-          <Ionicons 
-            name="close-circle" 
-            size={20} 
-            color="#666" 
+        {isSearching && (
+          <ActivityIndicator size="small" color="#FF0000" style={styles.searchSpinner} />
+        )}
+        {searchQuery.length > 0 && !isSearching && (
+          <Ionicons
+            name="close-circle"
+            size={20}
+            color="#666"
             onPress={() => setSearchQuery('')}
             style={styles.clearIcon}
           />
@@ -286,8 +297,8 @@ export default function MenuScreen() {
         <View style={styles.emptyContainer}>
           <Ionicons name="restaurant-outline" size={64} color="#ccc" />
           <Text style={styles.emptyText}>
-            {searchQuery 
-              ? 'Keine Gerichte gefunden' 
+            {debouncedSearchQuery
+              ? 'Keine Gerichte gefunden'
               : selectedCategory
                 ? 'Keine Gerichte in dieser Kategorie'
                 : 'Keine Gerichte verfügbar'}
@@ -367,6 +378,9 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#333',
+  },
+  searchSpinner: {
+    marginLeft: 8,
   },
   clearIcon: {
     marginLeft: 8,

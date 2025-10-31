@@ -2,6 +2,7 @@
  * Shared custom hooks for the application
  */
 
+export { useDebounce } from './useDebounce';
 export { useSupabaseSubscription, useSupabaseSubscriptionWithControls } from './useSupabaseSubscription';
 export {
   useFeatureFlag,
