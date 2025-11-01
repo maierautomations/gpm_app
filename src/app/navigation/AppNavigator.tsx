@@ -36,12 +36,16 @@ function MainTabs() {
         tabBarActiveTintColor: '#FF0000',  // Red for restaurant theme
         tabBarInactiveTintColor: 'gray',
       })}
+      backBehavior="initialRoute" // Better UX with lazy loading
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Menu" component={MenuScreen} />
-      <Tab.Screen name="Events" component={EventsScreen} />
-      <Tab.Screen name="Chat" component={ChatbotScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      {/* HomeScreen - eager load (user sees this first) */}
+      <Tab.Screen name="Home" component={HomeScreen} lazy={false} />
+
+      {/* All other tabs - lazy load when user navigates to them */}
+      <Tab.Screen name="Menu" component={MenuScreen} lazy={true} />
+      <Tab.Screen name="Events" component={EventsScreen} lazy={true} />
+      <Tab.Screen name="Chat" component={ChatbotScreen} lazy={true} />
+      <Tab.Screen name="Profile" component={ProfileScreen} lazy={true} />
     </Tab.Navigator>
   );
 }

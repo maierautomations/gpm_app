@@ -20,6 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import GalleryPreview from '../../gallery/components/GalleryPreview';
 import { logger } from '../../../utils/logger';
 import CachedImage from '../../../shared/components/CachedImage';
+import { perfMonitor } from '../../../utils/performanceMonitor';
 
 type MenuItem = Database['public']['Tables']['menu_items']['Row'];
 
@@ -45,6 +46,7 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    perfMonitor.mark('home_screen_mount');
     loadData();
   }, []);
 
@@ -53,7 +55,7 @@ export default function HomeScreen() {
       // Load current week's offers
       const offers = await OffersService.getCurrentWeekOffers();
       setCurrentOffers(offers);
-      
+
       // Load special offers or featured items
       const items = await MenuService.getMenuItems();
       // For now, show first 3 items as "specials"
@@ -63,6 +65,10 @@ export default function HomeScreen() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+
+      // Mark completion and log startup summary
+      perfMonitor.mark('home_data_loaded');
+      perfMonitor.logSummary();
     }
   };
 
